@@ -5,4 +5,5 @@ type Result struct {
 	Port     int    `json:"port"`
 	Location string `json:"location,omitempty"`
 	Source   string `json:"source"`
+	LiveTime int    `json:"live_time,omitempty"`
 }
