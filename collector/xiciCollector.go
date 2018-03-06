@@ -17,10 +17,7 @@ func CollectXici(url string) (*[]Result, error) {
 		return nil, errors.New(fmt.Sprintf("incorrect url:%s\n", url))
 	}
 
-	var (
-		results []Result
-		err     error
-	)
+	results := make([]Result, 0)
 
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -59,21 +56,20 @@ func CollectXici(url string) (*[]Result, error) {
 		speedString, existSpeed := selection.Find("td:nth-child(7) div").Attr("title")
 		liveTimeString := selection.Find("td:nth-child(9)").Text()
 
-		port, _ = strconv.Atoi(portString)
-		reg := regexp.MustCompile(`^[1-9]\d*\.\d*|0\.\d*[1-9]\d*$`)
-		if strings.Contains(speedString, "秒") {
-			speed, err = strconv.ParseFloat(reg.FindString(speedString), 64)
-			if err != nil {
-
-			}
+		reg := regexp.MustCompile(`((?:(?:25[0-5]|2[0-4]\\d|[01]?\\d?\\d)\\.){3}(?:25[0-5]|2[0-4]\\d|[01]?\\d?\\d))`)
+		if !reg.Match([]byte(ip)) {
+			ip = ""
 		}
 
-		reg = regexp.MustCompile(`^[1-9]\d*$`)
-		if strings.Contains(liveTimeString, "天") {
-			liveTime, err = strconv.Atoi(reg.FindString(liveTimeString))
-			if err != nil {
+		port, _ = strconv.Atoi(portString)
+		reg = regexp.MustCompile(`^[1-9]\d*\.\d*|0\.\d*[1-9]\d*`)
+		if strings.Contains(speedString, "秒") {
+			speed, _ = strconv.ParseFloat(reg.FindString(speedString), 64)
+		}
 
-			}
+		reg = regexp.MustCompile(`^[1-9]\d*`)
+		if strings.Contains(liveTimeString, "天") {
+			liveTime, _ = strconv.Atoi(reg.FindString(liveTimeString))
 		}
 
 		if ip != "" && port > 0 && existSpeed && speed > 0 && liveTime > 0 {
@@ -83,7 +79,7 @@ func CollectXici(url string) (*[]Result, error) {
 					Location: location,
 					Speed:    speed,
 					LiveTime: liveTime,
-					Source:   "http://www.xicidaili.com"})
+					Source:   url})
 		}
 	})
 
