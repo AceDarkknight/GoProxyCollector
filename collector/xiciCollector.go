@@ -3,6 +3,8 @@ package collector
 import (
 	"fmt"
 	"net/http"
+	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/AceDarkkinght/GoProxyCollector/util"
@@ -16,8 +18,8 @@ func CollectXici(url string) (*[]Result, error) {
 	}
 
 	var (
-		result *[]Result
-		err    error
+		results []Result
+		err     error
 	)
 
 	request, err := http.NewRequest("GET", url, nil)
@@ -45,15 +47,45 @@ func CollectXici(url string) (*[]Result, error) {
 
 	selection := doc.Find("#ip_list tr:not(:first-child)")
 	selection.Each(func(i int, selection *goquery.Selection) {
-		liveTime := selection.Find("td:nth-child(9)").Text()
-		if strings.Contains(liveTime, "天") {
-			ip := selection.Find("td:nth-child(2)").Text()
-			port := selection.Find("td:nth-child(3)").Text()
-			location := selection.Find("td:nth-child(4) a").Text()
-			source := "http://www.xicidaili.com"
-			fmt.Println(ip + " " + port + " " + location + " " + source + " " + liveTime)
+		var (
+			port     int
+			speed    float64
+			liveTime int
+		)
+
+		ip := selection.Find("td:nth-child(2)").Text()
+		portString := selection.Find("td:nth-child(3)").Text()
+		location := selection.Find("td:nth-child(4) a").Text()
+		speedString, existSpeed := selection.Find("td:nth-child(7) div").Attr("title")
+		liveTimeString := selection.Find("td:nth-child(9)").Text()
+
+		port, _ = strconv.Atoi(portString)
+		reg := regexp.MustCompile(`^[1-9]\d*\.\d*|0\.\d*[1-9]\d*$`)
+		if strings.Contains(speedString, "秒") {
+			speed, err = strconv.ParseFloat(reg.FindString(speedString), 64)
+			if err != nil {
+
+			}
+		}
+
+		reg = regexp.MustCompile(`^[1-9]\d*$`)
+		if strings.Contains(liveTimeString, "天") {
+			liveTime, err = strconv.Atoi(reg.FindString(liveTimeString))
+			if err != nil {
+
+			}
+		}
+
+		if ip != "" && port > 0 && existSpeed && speed > 0 && liveTime > 0 {
+			results = append(results,
+				Result{Ip: ip,
+					Port:     port,
+					Location: location,
+					Speed:    speed,
+					LiveTime: liveTime,
+					Source:   "http://www.xicidaili.com"})
 		}
 	})
 
-	return result, nil
+	return &results, nil
 }
