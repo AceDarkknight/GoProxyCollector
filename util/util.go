@@ -2,7 +2,10 @@ package util
 
 import (
 	"math/rand"
+	"strconv"
 	"time"
+
+	"github.com/parnurzeal/gorequest"
 )
 
 // RandomUA will return a random user agent.
@@ -25,4 +28,30 @@ func RandomUA() string {
 	}
 
 	return userAgent[rand.New(rand.NewSource(time.Now().Unix())).Intn(len(userAgent))]
+}
+
+func VerifyHTTP(ip string, port int) bool {
+	if ip == "" {
+		return false
+	}
+
+	if port <= 0 {
+		return false
+	}
+
+	proxy := "http://" + ip + ":" + strconv.Itoa(port)
+	resp, _, errs := gorequest.New().
+		Proxy(proxy).
+		Get("http://httpbin.org/get").
+		End()
+
+	if errs != nil {
+		return false
+	}
+
+	if resp.StatusCode != 200 {
+		return false
+	}
+
+	return true
 }

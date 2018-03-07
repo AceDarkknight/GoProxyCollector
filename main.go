@@ -1,8 +1,11 @@
 package main
 
-import "github.com/AceDarkkinght/GoProxyCollector/collector"
+import (
+	"github.com/AceDarkkinght/GoProxyCollector/collector"
+	"github.com/AceDarkkinght/GoProxyCollector/scheduler"
+)
 
 func main() {
-
-	collector.CollectXici("http://www.xicidaili.com/nn/1")
+	xiciCollector := collector.NewXiciCollector()
+	scheduler.Start(xiciCollector)
 }

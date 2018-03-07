@@ -12,7 +12,35 @@ import (
 	"github.com/pkg/errors"
 )
 
-func CollectXici(url string) (*[]Result, error) {
+type XiciCollector struct {
+	currentIndex int
+	firstIndex   int
+	lastIndex    int
+	baseUrl      string
+}
+
+// NewXiciCollector will return a new collector of http://www.xicidaili.com.
+// The will get first two page of http://www.xicidaili.com by default.
+func NewXiciCollector() *XiciCollector {
+	return &XiciCollector{
+		firstIndex:   1,
+		lastIndex:    2,
+		currentIndex: 0,
+		baseUrl:      "http://www.xicidaili.com/nn/"}
+}
+
+// Next will return the next page.
+func (c *XiciCollector) Next() string {
+	if c.currentIndex >= c.lastIndex {
+		return ""
+	}
+
+	c.currentIndex++
+	return c.baseUrl + strconv.Itoa(c.currentIndex)
+}
+
+// Collect will collect the ip and port and other information of the page.
+func (c *XiciCollector) Collect(url string) ([]Result, error) {
 	if !strings.HasPrefix(url, "http://www.xicidaili.com") {
 		return nil, errors.New(fmt.Sprintf("incorrect url:%s\n", url))
 	}
@@ -53,15 +81,16 @@ func CollectXici(url string) (*[]Result, error) {
 		ip := selection.Find("td:nth-child(2)").Text()
 		portString := selection.Find("td:nth-child(3)").Text()
 		location := selection.Find("td:nth-child(4) a").Text()
-		speedString, existSpeed := selection.Find("td:nth-child(7) div").Attr("title")
+		speedString, _ := selection.Find("td:nth-child(7) div").Attr("title")
 		liveTimeString := selection.Find("td:nth-child(9)").Text()
 
-		reg := regexp.MustCompile(`((?:(?:25[0-5]|2[0-4]\\d|[01]?\\d?\\d)\\.){3}(?:25[0-5]|2[0-4]\\d|[01]?\\d?\\d))`)
+		reg := regexp.MustCompile("((?:(?:25[0-5]|2[0-4]\\d|((1\\d{2})|([1-9]?\\d)))\\.){3}(?:25[0-5]|2[0-4]\\d|((1\\d{2})|([1-9]?\\d))))")
 		if !reg.Match([]byte(ip)) {
 			ip = ""
 		}
 
 		port, _ = strconv.Atoi(portString)
+
 		reg = regexp.MustCompile(`^[1-9]\d*\.\d*|0\.\d*[1-9]\d*`)
 		if strings.Contains(speedString, "秒") {
 			speed, _ = strconv.ParseFloat(reg.FindString(speedString), 64)
@@ -72,7 +101,8 @@ func CollectXici(url string) (*[]Result, error) {
 			liveTime, _ = strconv.Atoi(reg.FindString(liveTimeString))
 		}
 
-		if ip != "" && port > 0 && existSpeed && speed > 0 && liveTime > 0 {
+		// Speed must less than 1s and live time must larger than 1 day.
+		if ip != "" && port > 0 && speed > 0 && speed < 1 && liveTime > 0 {
 			results = append(results,
 				Result{Ip: ip,
 					Port:     port,
@@ -83,5 +113,5 @@ func CollectXici(url string) (*[]Result, error) {
 		}
 	})
 
-	return &results, nil
+	return results, nil
 }
