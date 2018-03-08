@@ -63,10 +63,10 @@ func (s *BoltDbStorage) Get(ip string) []byte {
 	return value
 }
 
-func (s *BoltDbStorage) Delete(ip string) bool {
+func (s *BoltDbStorage) Delete(key string) bool {
 	isSucceed := false
 	err := s.Db.Update(func(tx *bolt.Tx) error {
-		return s.bucket.Delete([]byte(ip))
+		return s.bucket.Delete([]byte(key))
 	})
 
 	if err == nil {
@@ -76,14 +76,14 @@ func (s *BoltDbStorage) Delete(ip string) bool {
 	return isSucceed
 }
 
-func (s *BoltDbStorage) Update(ip string, info interface{}) error {
+func (s *BoltDbStorage) Update(key string, info interface{}) error {
 	content, err := json.Marshal(info)
 	if err != nil {
 		return err
 	}
 
 	err = s.Db.Update(func(tx *bolt.Tx) error {
-		return s.bucket.Put([]byte(ip), content)
+		return s.bucket.Put([]byte(key), content)
 	})
 
 	return err

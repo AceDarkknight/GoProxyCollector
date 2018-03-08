@@ -2,20 +2,22 @@ package scheduler
 
 import (
 	"github.com/AceDarkkinght/GoProxyCollector/collector"
+	"github.com/AceDarkkinght/GoProxyCollector/storage"
+	"github.com/AceDarkkinght/GoProxyCollector/util"
 )
 
-func Start(collector collector.Collector) {
+func Start(collector collector.Collector, storage storage.Storage) {
 	if collector == nil {
 		return
 	}
 
-	resultChan := make(chan collector.Result, 100)
 	for {
 		url := collector.Next()
 		if url == "" {
 			break
 		}
 
+		// Collect.
 		results, err := collector.Collect(url)
 		if err != nil {
 			return
@@ -25,8 +27,11 @@ func Start(collector collector.Collector) {
 			return
 		}
 
-		for _, result := range results {
-			resultChan <- result
+		// Verify.
+		for _, r := range results {
+			if util.VerifyHTTP(r.Ip, r.Port) {
+				storage.Update(r.Ip, r)
+			}
 		}
 	}
 }
