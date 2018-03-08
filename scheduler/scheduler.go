@@ -1,6 +1,9 @@
 package scheduler
 
 import (
+	"math/rand"
+	"time"
+
 	"github.com/AceDarkkinght/GoProxyCollector/collector"
 	"github.com/AceDarkkinght/GoProxyCollector/storage"
 	"github.com/AceDarkkinght/GoProxyCollector/util"
@@ -33,5 +36,9 @@ func Start(collector collector.Collector, storage storage.Storage) {
 				storage.Update(r.Ip, r)
 			}
 		}
+
+		// Wait.
+		t := int64(rand.New(rand.NewSource(time.Now().Unix())).Intn(10))
+		time.Sleep(time.Duration(t) * time.Second)
 	}
 }
