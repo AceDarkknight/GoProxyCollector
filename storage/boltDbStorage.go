@@ -8,13 +8,17 @@ import (
 )
 
 type BoltDbStorage struct {
-	Db     *bolt.DB
-	bucket *bolt.Bucket
+	Db         *bolt.DB
+	bucketName string
 }
 
-func NewBoltDbStorage(fileName string) (*BoltDbStorage, error) {
+func NewBoltDbStorage(fileName string, bucketName string) (*BoltDbStorage, error) {
 	if fileName == "" {
-		return nil, errors.New("open boltdb fileName is empty")
+		return nil, errors.New("open boltdb whose fileName is empty")
+	}
+
+	if bucketName == "" {
+		return nil, errors.New("create a bucket whose name is empty")
 	}
 
 	db, err := bolt.Open(fileName, 0600, nil)
@@ -22,9 +26,8 @@ func NewBoltDbStorage(fileName string) (*BoltDbStorage, error) {
 		return nil, err
 	}
 
-	var bucket *bolt.Bucket
 	err = db.Update(func(tx *bolt.Tx) error {
-		bucket, err = tx.CreateBucketIfNotExists([]byte("ip"))
+		_, err := tx.CreateBucketIfNotExists([]byte("ip"))
 		if err != nil {
 			return err
 		}
@@ -32,31 +35,31 @@ func NewBoltDbStorage(fileName string) (*BoltDbStorage, error) {
 		return nil
 	})
 
-	if err != nil || bucket == nil {
+	if err != nil {
 		return nil, err
 	}
 
 	storage := BoltDbStorage{
-		Db:     db,
-		bucket: bucket,
+		Db:         db,
+		bucketName: bucketName,
 	}
 
 	return &storage, nil
 }
 
-func (s *BoltDbStorage) Exist(ip string) bool {
+func (s *BoltDbStorage) Exist(key string) bool {
 	exist := false
-	if s.Get(ip) != nil {
+	if s.Get(key) != nil {
 		exist = true
 	}
 
 	return exist
 }
 
-func (s *BoltDbStorage) Get(ip string) []byte {
+func (s *BoltDbStorage) Get(key string) []byte {
 	var value []byte
 	s.Db.View(func(tx *bolt.Tx) error {
-		value = s.bucket.Get([]byte(ip))
+		value = tx.Bucket([]byte(s.bucketName)).Get([]byte(key))
 		return nil
 	})
 
@@ -66,7 +69,7 @@ func (s *BoltDbStorage) Get(ip string) []byte {
 func (s *BoltDbStorage) Delete(key string) bool {
 	isSucceed := false
 	err := s.Db.Update(func(tx *bolt.Tx) error {
-		return s.bucket.Delete([]byte(key))
+		return tx.Bucket([]byte(s.bucketName)).Delete([]byte(key))
 	})
 
 	if err == nil {
@@ -76,15 +79,30 @@ func (s *BoltDbStorage) Delete(key string) bool {
 	return isSucceed
 }
 
-func (s *BoltDbStorage) Update(key string, info interface{}) error {
+func (s *BoltDbStorage) AddOrUpdate(key string, info interface{}) error {
 	content, err := json.Marshal(info)
 	if err != nil {
 		return err
 	}
 
 	err = s.Db.Update(func(tx *bolt.Tx) error {
-		return s.bucket.Put([]byte(key), content)
+		return tx.Bucket([]byte(s.bucketName)).Put([]byte(key), content)
 	})
 
 	return err
+}
+
+func (s *BoltDbStorage) GetAll() map[string][]byte {
+	result := make(map[string][]byte)
+
+	s.Db.View(func(tx *bolt.Tx) error {
+		tx.Bucket([]byte(s.bucketName)).ForEach(func(k, v []byte) error {
+			result[string(k)] = v
+			return nil
+		})
+
+		return nil
+	})
+
+	return result
 }

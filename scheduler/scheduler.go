@@ -33,12 +33,12 @@ func Start(collector collector.Collector, storage storage.Storage) {
 		// Verify.
 		for _, r := range results {
 			if util.VerifyHTTP(r.Ip, r.Port) {
-				storage.Update(r.Ip, r)
+				storage.AddOrUpdate(r.Ip, r)
 			}
 		}
 
-		// Wait.
-		t := int64(rand.New(rand.NewSource(time.Now().Unix())).Intn(10))
+		// Wait at least 2s.
+		t := rand.New(rand.NewSource(time.Now().Unix())).Intn(10) + 2
 		time.Sleep(time.Duration(t) * time.Second)
 	}
 }

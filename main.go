@@ -3,11 +3,14 @@ package main
 import (
 	"github.com/AceDarkkinght/GoProxyCollector/collector"
 	"github.com/AceDarkkinght/GoProxyCollector/scheduler"
+	"github.com/AceDarkkinght/GoProxyCollector/server"
 	"github.com/AceDarkkinght/GoProxyCollector/storage"
 )
 
 func main() {
-	boltDb, err := storage.NewBoltDbStorage("proxy.db")
+	go server.NewServer()
+
+	boltDb, err := storage.NewBoltDbStorage("proxy.db", "IpList")
 	if err != nil {
 		panic(err)
 	}
