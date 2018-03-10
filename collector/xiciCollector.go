@@ -17,6 +17,7 @@ type XiciCollector struct {
 	firstIndex   int
 	lastIndex    int
 	baseUrl      string
+	currentUrl   string
 }
 
 // NewXiciCollector will return a new collector of http://www.xicidaili.com.
@@ -26,28 +27,30 @@ func NewXiciCollector() *XiciCollector {
 		firstIndex:   1,
 		lastIndex:    2,
 		currentIndex: 0,
-		baseUrl:      "http://www.xicidaili.com/nn/"}
+		baseUrl:      "http://www.xicidaili.com/nn/",
+		currentUrl:   "http://www.xicidaili.com/nn/"}
 }
 
 // Next will return the next page.
-func (c *XiciCollector) Next() string {
+func (c *XiciCollector) Next() bool {
 	if c.currentIndex >= c.lastIndex {
-		return ""
+		return false
 	}
 
 	c.currentIndex++
-	return c.baseUrl + strconv.Itoa(c.currentIndex)
+	c.currentUrl = c.baseUrl + strconv.Itoa(c.currentIndex)
+	return true
 }
 
 // Collect will collect the ip and port and other information of the page.
-func (c *XiciCollector) Collect(url string) ([]Result, error) {
-	if !strings.HasPrefix(url, "http://www.xicidaili.com") {
-		return nil, errors.New(fmt.Sprintf("incorrect url:%s\n", url))
+func (c *XiciCollector) Collect() ([]Result, error) {
+	if !strings.HasPrefix(c.currentUrl, "http://www.xicidaili.com") {
+		return nil, errors.New(fmt.Sprintf("incorrect url:%s\n", c.currentUrl))
 	}
 
 	results := make([]Result, 0)
 
-	request, err := http.NewRequest("GET", url, nil)
+	request, err := http.NewRequest("GET", c.currentUrl, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +112,7 @@ func (c *XiciCollector) Collect(url string) ([]Result, error) {
 					Location: location,
 					Speed:    speed,
 					LiveTime: liveTime,
-					Source:   url})
+					Source:   c.baseUrl})
 		}
 	})
 

@@ -10,30 +10,23 @@ import (
 )
 
 func Start(collector collector.Collector, storage storage.Storage) {
-	if collector == nil {
+	if collector == nil || storage == nil {
 		return
 	}
 
 	for {
-		url := collector.Next()
-		if url == "" {
+		if !collector.Next() {
 			break
 		}
 
 		// Collect.
-		results, err := collector.Collect(url)
-		if err != nil {
-			return
-		}
-
-		if len(results) == 0 {
-			return
-		}
-
-		// Verify.
-		for _, r := range results {
-			if util.VerifyHTTP(r.Ip, r.Port) {
-				storage.AddOrUpdate(r.Ip, r)
+		results, err := collector.Collect()
+		if err == nil && len(results) > 0 {
+			// Verify.
+			for _, r := range results {
+				if util.VerifyHTTP(r.Ip, r.Port) {
+					storage.AddOrUpdate(r.Ip, r)
+				}
 			}
 		}
 

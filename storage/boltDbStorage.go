@@ -12,6 +12,7 @@ type BoltDbStorage struct {
 	bucketName string
 }
 
+// NewBoltDbStorage will return a boltdb object and error.
 func NewBoltDbStorage(fileName string, bucketName string) (*BoltDbStorage, error) {
 	if fileName == "" {
 		return nil, errors.New("open boltdb whose fileName is empty")
@@ -47,6 +48,7 @@ func NewBoltDbStorage(fileName string, bucketName string) (*BoltDbStorage, error
 	return &storage, nil
 }
 
+// Exist will
 func (s *BoltDbStorage) Exist(key string) bool {
 	exist := false
 	if s.Get(key) != nil {
@@ -59,7 +61,7 @@ func (s *BoltDbStorage) Exist(key string) bool {
 func (s *BoltDbStorage) Get(key string) []byte {
 	var value []byte
 	s.Db.View(func(tx *bolt.Tx) error {
-		value = tx.Bucket([]byte(s.bucketName)).Get([]byte(key))
+		copy(value, tx.Bucket([]byte(s.bucketName)).Get([]byte(key)))
 		return nil
 	})
 
@@ -97,7 +99,10 @@ func (s *BoltDbStorage) GetAll() map[string][]byte {
 
 	s.Db.View(func(tx *bolt.Tx) error {
 		tx.Bucket([]byte(s.bucketName)).ForEach(func(k, v []byte) error {
-			result[string(k)] = v
+			var key, value []byte
+			copy(key, k)
+			copy(value, v)
+			result[string(key)] = value
 			return nil
 		})
 
