@@ -6,4 +6,5 @@ type Storage interface {
 	Delete(string) bool
 	AddOrUpdate(string, interface{}) error
 	GetAll() map[string][]byte
+	Close()
 }

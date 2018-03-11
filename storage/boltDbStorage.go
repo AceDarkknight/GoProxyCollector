@@ -111,3 +111,7 @@ func (s *BoltDbStorage) GetAll() map[string][]byte {
 
 	return result
 }
+
+func (s *BoltDbStorage) Close() {
+	s.Db.Close()
+}

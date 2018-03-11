@@ -1,10 +1,12 @@
 package scheduler
 
 import (
+	"errors"
 	"math/rand"
 	"time"
 
 	"github.com/AceDarkkinght/GoProxyCollector/collector"
+	"github.com/AceDarkkinght/GoProxyCollector/proxyPool"
 	"github.com/AceDarkkinght/GoProxyCollector/storage"
 	"github.com/AceDarkkinght/GoProxyCollector/util"
 )
@@ -34,4 +36,12 @@ func Start(collector collector.Collector, storage storage.Storage) {
 		t := rand.New(rand.NewSource(time.Now().Unix())).Intn(10) + 2
 		time.Sleep(time.Duration(t) * time.Second)
 	}
+}
+
+func Init(pool *proxyPool.ProxyPool, storage storage.Storage) error {
+	if pool == nil || storage == nil {
+		errors.New("invalid parameter")
+	}
+
+	return nil
 }
