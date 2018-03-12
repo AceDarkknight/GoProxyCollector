@@ -87,14 +87,13 @@ func (c *XiciCollector) Collect() ([]Result, error) {
 		speedString, _ := selection.Find("td:nth-child(7) div").Attr("title")
 		liveTimeString := selection.Find("td:nth-child(9)").Text()
 
-		reg := regexp.MustCompile("((?:(?:25[0-5]|2[0-4]\\d|((1\\d{2})|([1-9]?\\d)))\\.){3}(?:25[0-5]|2[0-4]\\d|((1\\d{2})|([1-9]?\\d))))")
-		if !reg.Match([]byte(ip)) {
+		if !util.IsIp(ip) {
 			ip = ""
 		}
 
 		port, _ = strconv.Atoi(portString)
 
-		reg = regexp.MustCompile(`^[1-9]\d*\.\d*|0\.\d*[1-9]\d*`)
+		reg := regexp.MustCompile(`^[1-9]\d*\.\d*|0\.\d*[1-9]\d*`)
 		if strings.Contains(speedString, "秒") {
 			speed, _ = strconv.ParseFloat(reg.FindString(speedString), 64)
 		}

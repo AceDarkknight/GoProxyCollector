@@ -1,7 +1,9 @@
 package util
 
 import (
+	"fmt"
 	"math/rand"
+	"regexp"
 	"strconv"
 	"time"
 
@@ -30,8 +32,9 @@ func RandomUA() string {
 	return userAgent[rand.New(rand.NewSource(time.Now().Unix())).Intn(len(userAgent))]
 }
 
-func VerifyHTTP(ip string, port int) bool {
-	if ip == "" {
+// VerifyProxyIp will use given ip and port as proxy, if the proxy is available, return true, otherwise return false.
+func VerifyProxyIp(ip string, port int) bool {
+	if ip == "" || !IsIp(ip) {
 		return false
 	}
 
@@ -54,4 +57,33 @@ func VerifyHTTP(ip string, port int) bool {
 	}
 
 	return true
+}
+
+// IsIp will match the given parameter is ip address or not.
+func IsIp(ip string) bool {
+	return IsInputMatchRegex(ip,
+		"((?:(?:25[0-5]|2[0-4]\\d|((1\\d{2})|([1-9]?\\d)))\\.){3}(?:25[0-5]|2[0-4]\\d|((1\\d{2})|([1-9]?\\d))))")
+}
+
+//// IsPositiveInteger will return input is positive integer or not.
+//func IsPositiveInteger(input string) bool {
+//	return IsInputMatchRegex(input, `^[1-9]\d*\.\d*|0\.\d*[1-9]\d*`)
+//}
+
+// IsInputMatchRegex will verify the input string is match the regex or not.
+// This function will recover the panic if regex can't be parsed.
+func IsInputMatchRegex(input, regex string) bool {
+	result := false
+	reg := regexp.MustCompile(regex)
+	result = reg.MatchString(input)
+
+	defer func() {
+		r := recover()
+		if r != nil {
+			result = false
+			fmt.Println(r)
+		}
+	}()
+
+	return result
 }

@@ -48,7 +48,7 @@ func NewBoltDbStorage(fileName string, bucketName string) (*BoltDbStorage, error
 	return &storage, nil
 }
 
-// Exist will
+// Exist will check the given key is existed in DB or not.
 func (s *BoltDbStorage) Exist(key string) bool {
 	exist := false
 	if s.Get(key) != nil {
@@ -58,6 +58,7 @@ func (s *BoltDbStorage) Exist(key string) bool {
 	return exist
 }
 
+// Get will get the json byte value of key.
 func (s *BoltDbStorage) Get(key string) []byte {
 	var value []byte
 	s.Db.View(func(tx *bolt.Tx) error {
@@ -68,6 +69,7 @@ func (s *BoltDbStorage) Get(key string) []byte {
 	return value
 }
 
+// Delete the value by the given key.
 func (s *BoltDbStorage) Delete(key string) bool {
 	isSucceed := false
 	err := s.Db.Update(func(tx *bolt.Tx) error {
@@ -81,8 +83,9 @@ func (s *BoltDbStorage) Delete(key string) bool {
 	return isSucceed
 }
 
-func (s *BoltDbStorage) AddOrUpdate(key string, info interface{}) error {
-	content, err := json.Marshal(info)
+// AddOrUpdate will add the value into DB if key is not existed, otherwise update the existing value.
+func (s *BoltDbStorage) AddOrUpdate(key string, value interface{}) error {
+	content, err := json.Marshal(value)
 	if err != nil {
 		return err
 	}
@@ -94,6 +97,7 @@ func (s *BoltDbStorage) AddOrUpdate(key string, info interface{}) error {
 	return err
 }
 
+// GetAll will return all key-value in DB.
 func (s *BoltDbStorage) GetAll() map[string][]byte {
 	result := make(map[string][]byte)
 
@@ -112,6 +116,7 @@ func (s *BoltDbStorage) GetAll() map[string][]byte {
 	return result
 }
 
+// Close will close the DB.
 func (s *BoltDbStorage) Close() {
 	s.Db.Close()
 }
