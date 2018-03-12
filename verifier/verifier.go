@@ -20,14 +20,16 @@ func VerifyAll(storage storage.Storage) {
 	for ip, value := range items {
 		wg.Add(1)
 
-		go func() {
+		go func(v []byte) {
 			var result collector.Result
-			json.Unmarshal(value, &result)
+			json.Unmarshal(v, &result)
 			if !util.VerifyProxyIp(ip, result.Port) {
 				storage.Delete(ip)
 			}
 
 			defer wg.Done()
-		}()
+		}(value)
 	}
+
+	wg.Wait()
 }

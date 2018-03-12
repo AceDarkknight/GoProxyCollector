@@ -29,13 +29,13 @@ func Start(collector collector.Collector, storage storage.Storage) {
 			for _, r := range results {
 				wg.Add(1)
 
-				go func(ip string, port int, result collector.Result) {
-					if util.VerifyProxyIp(ip, port) {
-						storage.AddOrUpdate(ip, r)
+				go func() {
+					if util.VerifyProxyIp(r.Ip, r.Port) {
+						storage.AddOrUpdate(r.Ip, r)
 					}
 
 					defer wg.Done()
-				}(r.Ip, r.Port, r)
+				}()
 			}
 
 			wg.Wait()
