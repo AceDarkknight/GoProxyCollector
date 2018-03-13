@@ -2,6 +2,7 @@ package proxyPool
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"sync"
 
@@ -113,6 +114,7 @@ func (p *ProxyPool) Sync(storage storage.Storage) error {
 	}
 
 	items := storage.GetAll()
+	fmt.Printf("%v\n", items)
 	if len(items) == 0 {
 		return nil
 	}
@@ -122,7 +124,9 @@ func (p *ProxyPool) Sync(storage storage.Storage) error {
 	mutex.Unlock()
 
 	for k := range items {
-		p.Add(&IpItem{Ip: k, Status: AVAILABLE})
+		if k != "" {
+			p.Add(&IpItem{Ip: k, Status: AVAILABLE})
+		}
 	}
 
 	return nil

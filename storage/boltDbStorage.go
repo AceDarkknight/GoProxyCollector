@@ -28,7 +28,7 @@ func NewBoltDbStorage(fileName string, bucketName string) (*BoltDbStorage, error
 	}
 
 	err = db.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists([]byte("ip"))
+		_, err := tx.CreateBucketIfNotExists([]byte(bucketName))
 		if err != nil {
 			return err
 		}
@@ -103,7 +103,7 @@ func (s *BoltDbStorage) GetAll() map[string][]byte {
 
 	s.Db.View(func(tx *bolt.Tx) error {
 		tx.Bucket([]byte(s.bucketName)).ForEach(func(k, v []byte) error {
-			var key, value []byte
+			key, value := make([]byte, len(k)), make([]byte, len(v))
 			copy(key, k)
 			copy(value, v)
 			result[string(key)] = value

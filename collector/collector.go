@@ -1,6 +1,8 @@
 package collector
 
+import "github.com/AceDarkkinght/GoProxyCollector/result"
+
 type Collector interface {
 	Next() bool
-	Collect() ([]Result, error)
+	Collect(chan<- *result.Result)
 }

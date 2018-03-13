@@ -43,6 +43,7 @@ func VerifyProxyIp(ip string, port int) bool {
 	}
 
 	proxy := "http://" + ip + ":" + strconv.Itoa(port)
+	fmt.Printf("verify %s\n", proxy)
 	resp, _, errs := gorequest.New().
 		Proxy(proxy).
 		Get("http://httpbin.org/get").

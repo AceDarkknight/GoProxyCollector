@@ -1,48 +1,104 @@
 package scheduler
 
 import (
-	"math/rand"
+	"fmt"
+	_ "math/rand"
 	"sync"
 	"time"
 
 	"github.com/AceDarkkinght/GoProxyCollector/collector"
+	"github.com/AceDarkkinght/GoProxyCollector/result"
+
+	//"github.com/AceDarkkinght/GoProxyCollector/result"
 	"github.com/AceDarkkinght/GoProxyCollector/storage"
 	"github.com/AceDarkkinght/GoProxyCollector/util"
 )
 
-func Start(collector collector.Collector, storage storage.Storage) {
+func Run(collector collector.Collector, storage storage.Storage) {
 	if collector == nil || storage == nil {
 		return
 	}
 
-	var wg sync.WaitGroup
+	//var wg sync.WaitGroup
 
 	for {
+		resultChan := make(chan *result.Result, 1)
 		if !collector.Next() {
 			break
 		}
 
 		// Collect.
-		results, err := collector.Collect()
-		if err == nil && len(results) > 0 {
-			// Verify.
-			for _, r := range results {
-				wg.Add(1)
+		go collector.Collect(resultChan)
 
-				go func() {
-					if util.VerifyProxyIp(r.Ip, r.Port) {
-						storage.AddOrUpdate(r.Ip, r)
-					}
+		// Verify.
+		go Verify(resultChan, storage)
+		//for r := range resultChan {
+		//	wg.Add(1)
+		//
+		//	go func() {
+		//		if util.VerifyProxyIp(r.Ip, r.Port) {
+		//			storage.AddOrUpdate(r.Ip, r)
+		//		}
+		//
+		//		defer wg.Done()
+		//	}()
+		//
+		//	wg.Wait()
+		//}
 
-					defer wg.Done()
-				}()
+		//if err == nil && len(results) > 0 {
+		//	// Verify.
+		//	for _, result := range results {
+		//		wg.Add(1)
+		//
+		//		r := result
+		//		go func() {
+		//			if util.VerifyProxyIp(r.Ip, r.Port) {
+		//				storage.AddOrUpdate(r.Ip, r)
+		//			}
+		//
+		//			defer wg.Done()
+		//		}()
+		//	}
+		//
+		//	wg.Wait()
+		//}
+
+		//if err == nil && results != nil && len(results) > 0 {
+		//	for i := 0; i < len(results); i++ {
+		//		wg.Add(1)
+		//
+		//		go func(r *result.Result) {
+		//			if util.VerifyProxyIp(r.Ip, r.Port) {
+		//				storage.AddOrUpdate(r.Ip, r)
+		//			}
+		//
+		//			defer wg.Done()
+		//		}(results[i])
+		//	}
+		//
+		//	wg.Wait()
+		//}
+
+		// Wait at least 2s to avoid the website block our IP.
+		//t := rand.New(rand.NewSource(time.Now().Unix())).Intn(10) + 2
+		time.Sleep(30 * time.Second)
+	}
+}
+
+func Verify(resultChan <-chan *result.Result, storage storage.Storage) {
+	var wg sync.WaitGroup
+	for r := range resultChan {
+		wg.Add(1)
+		go func(r *result.Result) {
+			if util.VerifyProxyIp(r.Ip, r.Port) {
+				fmt.Printf("address %p,Ip:%s\n", r, r.Ip)
+				storage.AddOrUpdate(r.Ip, r)
 			}
 
-			wg.Wait()
-		}
-
-		// Wait at least 5s to avoid the website block our IP.
-		t := rand.New(rand.NewSource(time.Now().Unix())).Intn(15) + 5
-		time.Sleep(time.Duration(t) * time.Second)
+			defer wg.Done()
+		}(r)
 	}
+
+	wg.Wait()
 }

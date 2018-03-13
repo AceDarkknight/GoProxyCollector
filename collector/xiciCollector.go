@@ -1,15 +1,14 @@
 package collector
 
 import (
-	"fmt"
 	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
 
+	"github.com/AceDarkkinght/GoProxyCollector/result"
 	"github.com/AceDarkkinght/GoProxyCollector/util"
 	"github.com/PuerkitoBio/goquery"
-	"github.com/pkg/errors"
 )
 
 type XiciCollector struct {
@@ -25,7 +24,7 @@ type XiciCollector struct {
 func NewXiciCollector() *XiciCollector {
 	return &XiciCollector{
 		firstIndex:   1,
-		lastIndex:    2,
+		lastIndex:    3,
 		currentIndex: 0,
 		baseUrl:      "http://www.xicidaili.com/nn/",
 		currentUrl:   "http://www.xicidaili.com/nn/"}
@@ -43,34 +42,37 @@ func (c *XiciCollector) Next() bool {
 }
 
 // Collect will collect the ip and port and other information of the page.
-func (c *XiciCollector) Collect() ([]Result, error) {
+func (c *XiciCollector) Collect(ch chan<- *result.Result) {
 	if !strings.HasPrefix(c.currentUrl, "http://www.xicidaili.com") {
-		return nil, errors.New(fmt.Sprintf("incorrect url:%s\n", c.currentUrl))
+		//return nil, errors.New(fmt.Sprintf("incorrect url:%s\n", c.currentUrl))
+		return
 	}
-
-	results := make([]Result, 0)
 
 	request, err := http.NewRequest("GET", c.currentUrl, nil)
 	if err != nil {
-		return nil, err
+		//return nil, err
+		return
 	}
 
 	request.Header.Add("User-Agent", util.RandomUA())
 	client := http.DefaultClient
 	response, err := client.Do(request)
 	if err != nil {
-		return nil, err
+		//return nil, err
+		return
 	}
 
 	if response.StatusCode != 200 {
-		return nil, errors.New(http.StatusText(response.StatusCode))
+		//return nil, errors.New(http.StatusText(response.StatusCode))
+		return
 	}
 
 	defer response.Body.Close()
 
 	doc, err := goquery.NewDocumentFromReader(response.Body)
 	if err != nil {
-		return nil, err
+		//return nil, err
+		return
 	}
 
 	selection := doc.Find("#ip_list tr:not(:first-child)")
@@ -103,17 +105,18 @@ func (c *XiciCollector) Collect() ([]Result, error) {
 			liveTime, _ = strconv.Atoi(reg.FindString(liveTimeString))
 		}
 
-		// Speed must less than 1s and live time must larger than 1 day.
-		if ip != "" && port > 0 && speed > 0 && speed < 1 && liveTime > 0 {
-			results = append(results,
-				Result{Ip: ip,
-					Port:     port,
-					Location: location,
-					Speed:    speed,
-					LiveTime: liveTime,
-					Source:   c.baseUrl})
+		// Speed must less than 2s and live time must larger than 1 day.
+		if ip != "" && port > 0 && speed > 0 && speed < 2 && liveTime > 0 {
+			r := &result.Result{Ip: ip,
+				Port:     port,
+				Location: location,
+				Speed:    speed,
+				LiveTime: liveTime,
+				Source:   c.baseUrl}
+
+			ch <- r
 		}
 	})
 
-	return results, nil
+	close(ch)
 }

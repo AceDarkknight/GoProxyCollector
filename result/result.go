@@ -1,4 +1,4 @@
-package collector
+package result
 
 type Result struct {
 	Ip       string  `json:"ip"`

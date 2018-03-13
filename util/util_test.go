@@ -26,7 +26,7 @@ func TestVerifyHTTP(t *testing.T) {
 		{"length of ip = 0", args{"", 80}, false},
 		{"port is less than 0", args{"0.0.0.0", -20}, false},
 		// Just for temporary test.
-		// {"usable ip", args{"183.136.218.253", 80}, true},
+		{"usable ip", args{"61.135.217.7", 80}, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
