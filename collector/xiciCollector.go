@@ -44,7 +44,6 @@ func (c *XiciCollector) Next() bool {
 // Collect will collect the ip and port and other information of the page.
 func (c *XiciCollector) Collect(ch chan<- *result.Result) {
 	if !strings.HasPrefix(c.currentUrl, "http://www.xicidaili.com") {
-		//return nil, errors.New(fmt.Sprintf("incorrect url:%s\n", c.currentUrl))
 		return
 	}
 
@@ -118,5 +117,5 @@ func (c *XiciCollector) Collect(ch chan<- *result.Result) {
 		}
 	})
 
-	close(ch)
+	defer close(ch)
 }

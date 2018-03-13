@@ -29,7 +29,7 @@ func main() {
 	syncTicker := time.NewTicker(time.Minute * 2)
 	go func() {
 		for _ = range syncTicker.C {
-			verifier.VerifyAll(database)
+			verifier.VerifyAndDelete(database)
 			pool.Sync(database)
 		}
 	}()
