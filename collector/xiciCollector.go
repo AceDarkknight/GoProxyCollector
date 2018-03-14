@@ -27,8 +27,7 @@ func NewXiciCollector() *XiciCollector {
 		firstIndex:   1,
 		lastIndex:    3,
 		currentIndex: 0,
-		baseUrl:      "http://www.xicidaili.com/nn/",
-		currentUrl:   "http://www.xicidaili.com/nn/"}
+		baseUrl:      "http://www.xicidaili.com/nn/"}
 }
 
 // Next will return the next page.
@@ -46,13 +45,9 @@ func (c *XiciCollector) Next() bool {
 
 // Collect will collect the ip and port and other information of the page.
 func (c *XiciCollector) Collect(ch chan<- *result.Result) {
-	if !strings.HasPrefix(c.currentUrl, "http://www.xicidaili.com") {
-		return
-	}
-
 	request, err := http.NewRequest("GET", c.currentUrl, nil)
 	if err != nil {
-		//return nil, err
+		seelog.Errorf("make request to call %s error:%v", c.currentUrl, err)
 		return
 	}
 
@@ -60,12 +55,12 @@ func (c *XiciCollector) Collect(ch chan<- *result.Result) {
 	client := http.DefaultClient
 	response, err := client.Do(request)
 	if err != nil {
-		//return nil, err
+		seelog.Errorf("GET %s error:%v", c.currentUrl, err)
 		return
 	}
 
 	if response.StatusCode != 200 {
-		//return nil, errors.New(http.StatusText(response.StatusCode))
+		seelog.Errorf("GET %s failed, status code:%s", c.currentUrl, http.StatusText(response.StatusCode))
 		return
 	}
 
@@ -73,7 +68,7 @@ func (c *XiciCollector) Collect(ch chan<- *result.Result) {
 
 	doc, err := goquery.NewDocumentFromReader(response.Body)
 	if err != nil {
-		//return nil, err
+		seelog.Errorf("parse %s error:%v", c.currentUrl, err)
 		return
 	}
 
