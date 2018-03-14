@@ -27,8 +27,8 @@ func Run(collector collector.Collector, storage storage.Storage) {
 		// Verify.
 		verifier.VerifyAndSave(resultChan, storage)
 
-		// Wait at least 2s to avoid the website block our IP.
-		t := rand.New(rand.NewSource(time.Now().Unix())).Intn(10) + 2
+		// Wait at least 5s to avoid the website block our IP.
+		t := rand.New(rand.NewSource(time.Now().Unix())).Intn(10) + 5
 		time.Sleep(time.Duration(t) * time.Second)
 	}
 }

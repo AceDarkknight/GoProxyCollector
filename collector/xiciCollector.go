@@ -9,6 +9,7 @@ import (
 	"github.com/AceDarkkinght/GoProxyCollector/result"
 	"github.com/AceDarkkinght/GoProxyCollector/util"
 	"github.com/PuerkitoBio/goquery"
+	"github.com/cihub/seelog"
 )
 
 type XiciCollector struct {
@@ -38,6 +39,8 @@ func (c *XiciCollector) Next() bool {
 
 	c.currentIndex++
 	c.currentUrl = c.baseUrl + strconv.Itoa(c.currentIndex)
+
+	seelog.Debugf("current url:%s", c.currentUrl)
 	return true
 }
 
@@ -117,5 +120,6 @@ func (c *XiciCollector) Collect(ch chan<- *result.Result) {
 		}
 	})
 
+	seelog.Debugf("finish collect url%s", c.currentUrl)
 	defer close(ch)
 }

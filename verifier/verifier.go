@@ -2,7 +2,6 @@ package verifier
 
 import (
 	"encoding/json"
-	"fmt"
 	"sync"
 
 	"github.com/AceDarkkinght/GoProxyCollector/result"
@@ -43,7 +42,6 @@ func VerifyAndSave(resultChan <-chan *result.Result, storage storage.Storage) {
 		wg.Add(1)
 		go func(r *result.Result) {
 			if util.VerifyProxyIp(r.Ip, r.Port) {
-				fmt.Printf("address %p,Ip:%s\n", r, r.Ip)
 				storage.AddOrUpdate(r.Ip, r)
 			}
 

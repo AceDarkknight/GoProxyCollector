@@ -1,0 +1,11 @@
+<seelog>
+    <outputs formatid="main">
+        <filter levels="info,error,critical">
+            <rollingfile type="date" filename="log/AppLog.log" namemode="prefix" datepattern="02.01.2006" fullname="true"/>
+        </filter>
+        <console/>
+    </outputs>
+    <formats>
+        <format id="main" format="%Date %Time [%LEVEL] %Msg%n"/>
+    </formats>
+</seelog>

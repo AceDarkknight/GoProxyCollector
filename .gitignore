@@ -1,3 +1,9 @@
 .idea
 proxy.db
 proxy.db.lock
+
+test.db
+test.db.lock
+
+log
+AppLog.log

@@ -43,7 +43,6 @@ func VerifyProxyIp(ip string, port int) bool {
 	}
 
 	proxy := "http://" + ip + ":" + strconv.Itoa(port)
-	fmt.Printf("verify %s\n", proxy)
 	resp, _, errs := gorequest.New().
 		Proxy(proxy).
 		Get("http://httpbin.org/get").
@@ -65,11 +64,6 @@ func IsIp(ip string) bool {
 	return IsInputMatchRegex(ip,
 		"((?:(?:25[0-5]|2[0-4]\\d|((1\\d{2})|([1-9]?\\d)))\\.){3}(?:25[0-5]|2[0-4]\\d|((1\\d{2})|([1-9]?\\d))))")
 }
-
-//// IsPositiveInteger will return input is positive integer or not.
-//func IsPositiveInteger(input string) bool {
-//	return IsInputMatchRegex(input, `^[1-9]\d*\.\d*|0\.\d*[1-9]\d*`)
-//}
 
 // IsInputMatchRegex will verify the input string is match the regex or not.
 // This function will recover the panic if regex can't be parsed.

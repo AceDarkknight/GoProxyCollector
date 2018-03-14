@@ -3,17 +3,23 @@ package storage
 import (
 	"encoding/json"
 	"errors"
+	"math/rand"
+	"sync"
+	"time"
 
 	"github.com/boltdb/bolt"
 )
 
 type BoltDbStorage struct {
 	Db         *bolt.DB
+	Keys       []string
 	bucketName string
+	mutex      sync.Mutex
 }
 
 // NewBoltDbStorage will return a boltdb object and error.
 func NewBoltDbStorage(fileName string, bucketName string) (*BoltDbStorage, error) {
+
 	if fileName == "" {
 		return nil, errors.New("open boltdb whose fileName is empty")
 	}
@@ -40,9 +46,12 @@ func NewBoltDbStorage(fileName string, bucketName string) (*BoltDbStorage, error
 		return nil, err
 	}
 
+	keys := make([]string, 0, 10000)
+
 	storage := BoltDbStorage{
 		Db:         db,
 		bucketName: bucketName,
+		Keys:       keys,
 	}
 
 	return &storage, nil
@@ -60,9 +69,9 @@ func (s *BoltDbStorage) Exist(key string) bool {
 
 // Get will get the json byte value of key.
 func (s *BoltDbStorage) Get(key string) []byte {
-	var value []byte
+	value := make([]byte, 0)
 	s.Db.View(func(tx *bolt.Tx) error {
-		copy(value, tx.Bucket([]byte(s.bucketName)).Get([]byte(key)))
+		value = append(value, tx.Bucket([]byte(s.bucketName)).Get([]byte(key))...)
 		return nil
 	})
 
@@ -84,6 +93,7 @@ func (s *BoltDbStorage) Delete(key string) bool {
 }
 
 // AddOrUpdate will add the value into DB if key is not existed, otherwise update the existing value.
+// Value will be marshal as json format.
 func (s *BoltDbStorage) AddOrUpdate(key string, value interface{}) error {
 	content, err := json.Marshal(value)
 	if err != nil {
@@ -119,4 +129,29 @@ func (s *BoltDbStorage) GetAll() map[string][]byte {
 // Close will close the DB.
 func (s *BoltDbStorage) Close() {
 	s.Db.Close()
+}
+
+// SyncKeys will sync the DB's key to memory.
+func (s *BoltDbStorage) SyncKeys() {
+	result := s.GetAll()
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	s.Keys = s.Keys[0:0:cap(s.Keys)]
+	for k := range result {
+		s.Keys = append(s.Keys, k)
+	}
+}
+
+// Get one random record.
+func (s *BoltDbStorage) GetRandomOne() (string, []byte) {
+	s.mutex.Lock()
+	if len(s.Keys) == 0 {
+		s.SyncKeys()
+	}
+
+	key := s.Keys[rand.New(rand.NewSource(time.Now().Unix())).Intn(len(s.Keys))]
+	s.mutex.Unlock()
+
+	return key, s.Get(key)
 }

@@ -1,9 +1,19 @@
 package server
 
-import "net/http"
+import (
+	"net/http"
 
-func NewServer() {
-	http.HandleFunc("/httpIp", getIp)
+	"github.com/AceDarkkinght/GoProxyCollector/storage"
+)
+
+var s storage.Storage
+
+func NewServer(storage storage.Storage) {
+	if storage != nil {
+		s = storage
+	}
+
+	http.HandleFunc("/ip", getIp)
 	err := http.ListenAndServe(":8090", nil)
 	if err != nil {
 		panic(err)
@@ -13,6 +23,18 @@ func NewServer() {
 func getIp(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		w.Header().Add("content-type", "application/json")
+		if s == nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(http.StatusText(http.StatusInternalServerError)))
+		}
+
+		_, result := s.GetRandomOne()
+		if len(result) > 0 {
+			w.Write(result)
+		} else {
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte(http.StatusText(http.StatusNotFound)))
+		}
 	} else {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		w.Write([]byte(http.StatusText(http.StatusMethodNotAllowed)))
