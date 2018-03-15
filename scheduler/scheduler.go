@@ -8,6 +8,7 @@ import (
 	"github.com/AceDarkkinght/GoProxyCollector/result"
 	"github.com/AceDarkkinght/GoProxyCollector/storage"
 	"github.com/AceDarkkinght/GoProxyCollector/verifier"
+	"github.com/cihub/seelog"
 )
 
 func Run(collector collector.Collector, storage storage.Storage) {
@@ -16,7 +17,7 @@ func Run(collector collector.Collector, storage storage.Storage) {
 	}
 
 	for {
-		resultChan := make(chan *result.Result, 10)
+		resultChan := make(chan *result.Result, 100)
 		if !collector.Next() {
 			break
 		}
@@ -29,6 +30,7 @@ func Run(collector collector.Collector, storage storage.Storage) {
 
 		// Wait at least 5s to avoid the website block our IP.
 		t := rand.New(rand.NewSource(time.Now().Unix())).Intn(10) + 5
+		seelog.Debugf("sleep %d second", t)
 		time.Sleep(time.Duration(t) * time.Second)
 	}
 }

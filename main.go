@@ -33,6 +33,9 @@ func main() {
 	// Sync data.
 	database.SyncKeys()
 
+	// Start server
+	go server.NewServer(database)
+
 	// Sync DB every 2min.
 	syncTicker := time.NewTicker(time.Minute * 5)
 	go func() {
@@ -43,11 +46,12 @@ func main() {
 		}
 	}()
 
-	go server.NewServer(database)
-
 	for {
-		xiciCollector := collector.NewXiciCollector()
-		scheduler.Run(xiciCollector, database)
+		coderbusyCollector := collector.NewCoderbusyCollector()
+		scheduler.Run(coderbusyCollector, database)
+
+		//xiciCollector := collector.NewXiciCollector()
+		//scheduler.Run(xiciCollector, database)
 	}
 
 	defer database.Close()

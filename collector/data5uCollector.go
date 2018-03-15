@@ -12,39 +12,34 @@ import (
 	"github.com/cihub/seelog"
 )
 
-type XiciCollector struct {
+type Data5uCollector struct {
 	currentIndex int
-	firstIndex   int
-	lastIndex    int
+	pendingPart  []string
 	baseUrl      string
 	currentUrl   string
 }
 
-// NewXiciCollector will return a new collector of http://www.xicidaili.com.
-// The will get first two page of http://www.xicidaili.com by default.
-func NewXiciCollector() *XiciCollector {
-	return &XiciCollector{
-		firstIndex:   1,
-		lastIndex:    3,
-		currentIndex: 0,
-		baseUrl:      "http://www.xicidaili.com/nn/"}
+func NewData5uCollector() *Data5uCollector {
+	return &Data5uCollector{
+		currentIndex: -1,
+		pendingPart:  []string{"index.shtml", "gngn/index.shtml", "gnpt/index.shtml", "gwgn/index.shtml", "gwpt/index.shtml"},
+		baseUrl:      "http://www.data5u.com/free/",
+	}
 }
 
-// Next will return the next page.
-func (c *XiciCollector) Next() bool {
-	if c.currentIndex >= c.lastIndex {
+func (c *Data5uCollector) Next() bool {
+	if c.currentIndex >= len(c.pendingPart)-1 {
 		return false
 	}
 
 	c.currentIndex++
-	c.currentUrl = c.baseUrl + strconv.Itoa(c.currentIndex)
+	c.currentUrl = c.baseUrl + c.pendingPart[c.currentIndex]
 
 	seelog.Debugf("current url:%s", c.currentUrl)
 	return true
 }
 
-// Collect will collect the ip and port and other information of the page.
-func (c *XiciCollector) Collect(ch chan<- *result.Result) {
+func (c *Data5uCollector) Collect(ch chan<- *result.Result) {
 	request, err := http.NewRequest("GET", c.currentUrl, nil)
 	if err != nil {
 		seelog.Errorf("make request to call %s error:%v", c.currentUrl, err)
@@ -72,20 +67,19 @@ func (c *XiciCollector) Collect(ch chan<- *result.Result) {
 		return
 	}
 
-	selection := doc.Find("#ip_list tr:not(:first-child)")
+	selection := doc.Find(".l2")
 	selection.Each(func(i int, sel *goquery.Selection) {
 		var (
-			port     int
-			speed    float64
-			liveTime int
+			port  int
+			speed float64
 		)
 
-		ip := sel.Find("td:nth-child(2)").Text()
-		portString := sel.Find("td:nth-child(3)").Text()
-		location := sel.Find("td:nth-child(4) a").Text()
-		speedString, _ := sel.Find("td:nth-child(7) div").Attr("title")
-		liveTimeString := sel.Find("td:nth-child(9)").Text()
+		ip := sel.Find("span:nth-child(1) li").Text()
+		portString := sel.Find("span:nth-child(2) li").Text()
+		location := sel.Find("span:nth-child(6) a:nth-child(1)").Text() +
+			sel.Find("span:nth-child(6) a:nth-child(2)").Text()
 
+		speedString := sel.Find("span:nth-child(8) li").Text()
 		if !util.IsIp(ip) {
 			ip = ""
 		}
@@ -97,24 +91,18 @@ func (c *XiciCollector) Collect(ch chan<- *result.Result) {
 			speed, _ = strconv.ParseFloat(reg.FindString(speedString), 64)
 		}
 
-		reg = regexp.MustCompile(`^[1-9]\d*`)
-		if strings.Contains(liveTimeString, "天") {
-			liveTime, _ = strconv.Atoi(reg.FindString(liveTimeString))
-		}
-
 		// Speed must less than 2s and live time must larger than 1 day.
-		if ip != "" && port > 0 && speed > 0 && speed < 2 && liveTime > 0 {
+		if ip != "" && port > 0 && speed > 0 && speed < 2 {
 			r := &result.Result{Ip: ip,
 				Port:     port,
 				Location: location,
 				Speed:    speed,
-				LiveTime: liveTime,
 				Source:   c.currentUrl}
 
 			ch <- r
 		}
 	})
 
-	seelog.Debugf("finish collect url%s", c.currentUrl)
+	seelog.Debugf("finish collect url:%s", c.currentUrl)
 	defer close(ch)
 }

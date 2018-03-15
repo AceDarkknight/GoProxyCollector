@@ -12,7 +12,7 @@ import (
 	"github.com/cihub/seelog"
 )
 
-type XiciCollector struct {
+type CoderbusyCollector struct {
 	currentIndex int
 	firstIndex   int
 	lastIndex    int
@@ -20,18 +20,15 @@ type XiciCollector struct {
 	currentUrl   string
 }
 
-// NewXiciCollector will return a new collector of http://www.xicidaili.com.
-// The will get first two page of http://www.xicidaili.com by default.
-func NewXiciCollector() *XiciCollector {
-	return &XiciCollector{
-		firstIndex:   1,
-		lastIndex:    3,
-		currentIndex: 0,
-		baseUrl:      "http://www.xicidaili.com/nn/"}
+func NewCoderbusyCollector() *CoderbusyCollector {
+	return &CoderbusyCollector{
+		baseUrl:    "https://proxy.coderbusy.com/classical/https-ready.aspx?page=",
+		firstIndex: 1,
+		lastIndex:  10,
+	}
 }
 
-// Next will return the next page.
-func (c *XiciCollector) Next() bool {
+func (c *CoderbusyCollector) Next() bool {
 	if c.currentIndex >= c.lastIndex {
 		return false
 	}
@@ -43,8 +40,7 @@ func (c *XiciCollector) Next() bool {
 	return true
 }
 
-// Collect will collect the ip and port and other information of the page.
-func (c *XiciCollector) Collect(ch chan<- *result.Result) {
+func (c *CoderbusyCollector) Collect(ch chan<- *result.Result) {
 	request, err := http.NewRequest("GET", c.currentUrl, nil)
 	if err != nil {
 		seelog.Errorf("make request to call %s error:%v", c.currentUrl, err)
@@ -72,7 +68,7 @@ func (c *XiciCollector) Collect(ch chan<- *result.Result) {
 		return
 	}
 
-	selection := doc.Find("#ip_list tr:not(:first-child)")
+	selection := doc.Find(".table tr:not(:first-child)")
 	selection.Each(func(i int, sel *goquery.Selection) {
 		var (
 			port     int
@@ -80,12 +76,13 @@ func (c *XiciCollector) Collect(ch chan<- *result.Result) {
 			liveTime int
 		)
 
-		ip := sel.Find("td:nth-child(2)").Text()
-		portString := sel.Find("td:nth-child(3)").Text()
-		location := sel.Find("td:nth-child(4) a").Text()
-		speedString, _ := sel.Find("td:nth-child(7) div").Attr("title")
-		liveTimeString := sel.Find("td:nth-child(9)").Text()
+		ip, _ := sel.Find("td:nth-child(2)").Attr("data-ip")
+		portString := sel.Find(".port-box").Text()
+		location := sel.Find("td:nth-child(3)").Text()
+		speedString := sel.Find("td:nth-child(10)").Text()
+		liveTimeString := sel.Find("td:nth-child(11)").Text()
 
+		//seelog.Debugf("ip:%s,port:%s,location:%s,speed:%s,live time:%s", ip, portString, location, speedString, liveTimeString)
 		if !util.IsIp(ip) {
 			ip = ""
 		}

@@ -6,7 +6,7 @@ import (
 
 	"github.com/AceDarkkinght/GoProxyCollector/result"
 	"github.com/AceDarkkinght/GoProxyCollector/util"
-	"github.com/PuerkitoBio/goquery"
+	//	"github.com/PuerkitoBio/goquery"
 	"github.com/cihub/seelog"
 )
 
@@ -60,9 +60,12 @@ func (c *kuaidailiCollector) Collect(ch chan<- *result.Result) {
 
 	defer response.Body.Close()
 
-	doc, err := goquery.NewDocumentFromReader(response.Body)
-	if err != nil {
-		seelog.Errorf("parse %s error:%v", c.currentUrl, err)
-		return
-	}
+	//doc, err := goquery.NewDocumentFromReader(response.Body)
+	//if err != nil {
+	//	seelog.Errorf("parse %s error:%v", c.currentUrl, err)
+	//	return
+	//}
+
+	seelog.Debugf("finish collect url:%s", c.currentUrl)
+	defer close(ch)
 }

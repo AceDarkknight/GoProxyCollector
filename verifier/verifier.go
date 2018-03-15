@@ -7,6 +7,7 @@ import (
 	"github.com/AceDarkkinght/GoProxyCollector/result"
 	"github.com/AceDarkkinght/GoProxyCollector/storage"
 	"github.com/AceDarkkinght/GoProxyCollector/util"
+	"github.com/cihub/seelog"
 )
 
 // VerifyAndSave existing Ips to check it's available or not. Delete the unavailable Ips.
@@ -41,8 +42,10 @@ func VerifyAndSave(resultChan <-chan *result.Result, storage storage.Storage) {
 	for r := range resultChan {
 		wg.Add(1)
 		go func(r *result.Result) {
+			seelog.Debugf("verify %v,%p", r, r)
 			if util.VerifyProxyIp(r.Ip, r.Port) {
 				storage.AddOrUpdate(r.Ip, r)
+				seelog.Debugf("insert %s to DB", r.Ip)
 			}
 
 			defer wg.Done()

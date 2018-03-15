@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/boltdb/bolt"
+	"github.com/cihub/seelog"
 )
 
 type BoltDbStorage struct {
@@ -141,6 +142,8 @@ func (s *BoltDbStorage) SyncKeys() {
 	for k := range result {
 		s.Keys = append(s.Keys, k)
 	}
+
+	seelog.Debug(s.Keys)
 }
 
 // Get one random record.

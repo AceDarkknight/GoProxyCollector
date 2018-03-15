@@ -13,10 +13,9 @@ import (
 // RandomUA will return a random user agent.
 func RandomUA() string {
 	userAgent := [...]string{
-		"Mozilla/5.0 (compatible, MSIE 10.0, Windows NT, DigExt)",
 		"Mozilla/4.0 (compatible, MSIE 7.0, Windows NT 5.1, 360SE)",
 		"Mozilla/4.0 (compatible, MSIE 8.0, Windows NT 6.0, Trident/4.0)",
-		"Mozilla/5.0 (compatible, MSIE 9.0, Windows NT 6.1, Trident/5.0,",
+		"Mozilla/5.0 (compatible, MSIE 9.0, Windows NT 6.1, Trident/5.0)",
 		"Opera/9.80 (Windows NT 6.1, U, en) Presto/2.8.131 Version/11.11",
 		"Mozilla/4.0 (compatible, MSIE 7.0, Windows NT 5.1, TencentTraveler 4.0)",
 		"Mozilla/5.0 (Windows, U, Windows NT 6.1, en-us) AppleWebKit/534.50 (KHTML, like Gecko) Version/5.1 Safari/534.50",
@@ -62,7 +61,7 @@ func VerifyProxyIp(ip string, port int) bool {
 // IsIp will match the given parameter is ip address or not.
 func IsIp(ip string) bool {
 	return IsInputMatchRegex(ip,
-		"((?:(?:25[0-5]|2[0-4]\\d|((1\\d{2})|([1-9]?\\d)))\\.){3}(?:25[0-5]|2[0-4]\\d|((1\\d{2})|([1-9]?\\d))))")
+		"^((?:(?:25[0-5]|2[0-4]\\d|((1\\d{2})|([1-9]?\\d)))\\.){3}(?:25[0-5]|2[0-4]\\d|((1\\d{2})|([1-9]?\\d))))")
 }
 
 // IsInputMatchRegex will verify the input string is match the regex or not.
