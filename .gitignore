@@ -7,3 +7,5 @@ test.db.lock
 
 log
 AppLog.log
+
+vendor
