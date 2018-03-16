@@ -45,6 +45,7 @@ func VerifyProxyIp(ip string, port int) bool {
 	resp, _, errs := gorequest.New().
 		Proxy(proxy).
 		Get("http://httpbin.org/get").
+		Timeout(time.Second * 10).
 		End()
 
 	if errs != nil {

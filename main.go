@@ -47,8 +47,11 @@ func main() {
 	}()
 
 	for {
-		coderbusyCollector := collector.NewCoderbusyCollector()
-		scheduler.Run(coderbusyCollector, database)
+		liunianCollector := collector.NewLiunianpCollector()
+		scheduler.Run(liunianCollector, database)
+
+		//coderbusyCollector := collector.NewCoderbusyCollector()
+		//scheduler.Run(coderbusyCollector, database)
 
 		//xiciCollector := collector.NewXiciCollector()
 		//scheduler.Run(xiciCollector, database)

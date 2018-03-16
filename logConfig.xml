@@ -1,7 +1,7 @@
 <seelog>
     <outputs formatid="main">
         <filter levels="info,error,critical">
-            <rollingfile type="date" filename="log/AppLog.log" namemode="prefix" datepattern="02.01.2006" fullname="true"/>
+            <rollingfile type="date" filename="log/AppLog.log" namemode="prefix" datepattern="02.01.2006"/>
         </filter>
         <console/>
     </outputs>

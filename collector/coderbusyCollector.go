@@ -24,7 +24,7 @@ func NewCoderbusyCollector() *CoderbusyCollector {
 	return &CoderbusyCollector{
 		baseUrl:    "https://proxy.coderbusy.com/classical/https-ready.aspx?page=",
 		firstIndex: 1,
-		lastIndex:  10,
+		lastIndex:  20,
 	}
 }
 
@@ -112,6 +112,6 @@ func (c *CoderbusyCollector) Collect(ch chan<- *result.Result) {
 		}
 	})
 
-	seelog.Debugf("finish collect url%s", c.currentUrl)
+	seelog.Debugf("finish collect url:%s", c.currentUrl)
 	defer close(ch)
 }

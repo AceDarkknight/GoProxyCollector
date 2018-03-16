@@ -6,3 +6,9 @@ type Collector interface {
 	Next() bool
 	Collect(chan<- *result.Result)
 }
+
+func NewCollector(name string) Collector {
+
+}
+
+type CollectorType uint
