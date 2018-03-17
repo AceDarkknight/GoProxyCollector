@@ -8,6 +8,7 @@ import (
 	"github.com/AceDarkkinght/GoProxyCollector/result"
 	"github.com/AceDarkkinght/GoProxyCollector/storage"
 	"github.com/AceDarkkinght/GoProxyCollector/verifier"
+
 	"github.com/cihub/seelog"
 )
 

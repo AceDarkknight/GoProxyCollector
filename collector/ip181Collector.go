@@ -8,41 +8,33 @@ import (
 
 	"github.com/AceDarkkinght/GoProxyCollector/result"
 	"github.com/AceDarkkinght/GoProxyCollector/util"
-
 	"github.com/PuerkitoBio/goquery"
+	"github.com/axgle/mahonia"
 	"github.com/cihub/seelog"
 	"github.com/parnurzeal/gorequest"
 )
 
-type KuaidailiCollector struct {
-	currentIndex int
-	firstIndex   int
-	lastIndex    int
-	baseUrl      string
-	currentUrl   string
+type Ip181Collector struct {
+	baseUrl    string
+	currentUrl string
 }
 
-func NewKuaidailiCollector() *KuaidailiCollector {
-	return &KuaidailiCollector{
-		currentIndex: 0,
-		firstIndex:   1,
-		lastIndex:    10,
-		baseUrl:      "https://www.kuaidaili.com/free/intr/"}
+func NewIp181Collector() *Ip181Collector {
+	return &Ip181Collector{
+		baseUrl: "http://www.ip181.com/",
+	}
 }
 
-func (c *KuaidailiCollector) Next() bool {
-	if c.currentIndex >= c.lastIndex {
+func (c *Ip181Collector) Next() bool {
+	if c.currentUrl != "" {
 		return false
 	}
 
-	c.currentIndex++
-	c.currentUrl = c.baseUrl + strconv.Itoa(c.currentIndex)
-
-	seelog.Debugf("current url:%s", c.currentUrl)
+	c.currentUrl = c.baseUrl
 	return true
 }
 
-func (c *KuaidailiCollector) Collect(ch chan<- *result.Result) {
+func (c *Ip181Collector) Collect(ch chan<- *result.Result) {
 	response, _, errs := gorequest.New().Get(c.currentUrl).Set("User-Agent", util.RandomUA()).End()
 	if len(errs) > 0 {
 		seelog.Errorf("%+v", errs)
@@ -61,7 +53,10 @@ func (c *KuaidailiCollector) Collect(ch chan<- *result.Result) {
 		return
 	}
 
-	selection := doc.Find("#list tr:not(:first-child)")
+	// Because of the charset is gbk, need to decode first.
+	decoder := mahonia.NewDecoder("gbk")
+
+	selection := doc.Find(".ctable tr:not(:first-child)")
 	selection.Each(func(i int, sel *goquery.Selection) {
 		var (
 			port  int
@@ -70,8 +65,11 @@ func (c *KuaidailiCollector) Collect(ch chan<- *result.Result) {
 
 		ip := sel.Find("td:nth-child(1)").Text()
 		portString := sel.Find("td:nth-child(2)").Text()
-		location := sel.Find("td:nth-child(5)").Text()
-		speedString := sel.Find("td:nth-child(6)").Text()
+		speedString := sel.Find("td:nth-child(5)").Text()
+		location := sel.Find("td:nth-child(6)").Text()
+
+		speedString = decoder.ConvertString(speedString)
+		location = decoder.ConvertString(location)
 
 		if !util.IsIp(ip) {
 			ip = ""

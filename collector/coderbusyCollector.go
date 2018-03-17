@@ -82,7 +82,6 @@ func (c *CoderbusyCollector) Collect(ch chan<- *result.Result) {
 		speedString := sel.Find("td:nth-child(10)").Text()
 		liveTimeString := sel.Find("td:nth-child(11)").Text()
 
-		//seelog.Debugf("ip:%s,port:%s,location:%s,speed:%s,live time:%s", ip, portString, location, speedString, liveTimeString)
 		if !util.IsIp(ip) {
 			ip = ""
 		}

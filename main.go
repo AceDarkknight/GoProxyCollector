@@ -8,6 +8,7 @@ import (
 	"github.com/AceDarkkinght/GoProxyCollector/server"
 	"github.com/AceDarkkinght/GoProxyCollector/storage"
 	"github.com/AceDarkkinght/GoProxyCollector/verifier"
+
 	"github.com/cihub/seelog"
 )
 
@@ -47,14 +48,8 @@ func main() {
 	}()
 
 	for {
-		liunianCollector := collector.NewLiunianpCollector()
-		scheduler.Run(liunianCollector, database)
-
-		//coderbusyCollector := collector.NewCoderbusyCollector()
-		//scheduler.Run(coderbusyCollector, database)
-
-		//xiciCollector := collector.NewXiciCollector()
-		//scheduler.Run(xiciCollector, database)
+		c := collector.NewCollector(collector.IP181)
+		scheduler.Run(c, database)
 	}
 
 	defer database.Close()

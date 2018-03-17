@@ -33,13 +33,13 @@ func (c *LiunianpCollector) Next() bool {
 }
 
 func (c *LiunianpCollector) Collect(ch chan<- *result.Result) {
-	resp, bodyString, errs := gorequest.New().Get(c.currentUrl).Set("User-Agent", util.RandomUA()).End()
+	response, bodyString, errs := gorequest.New().Get(c.currentUrl).Set("User-Agent", util.RandomUA()).End()
 	if len(errs) > 0 {
 		seelog.Errorf("%+v", errs)
 	}
 
-	if resp.StatusCode != 200 {
-		seelog.Errorf("GET %s failed, status code:%s", c.currentUrl, http.StatusText(resp.StatusCode))
+	if response.StatusCode != 200 {
+		seelog.Errorf("GET %s failed, status code:%s", c.currentUrl, http.StatusText(response.StatusCode))
 		return
 	}
 
