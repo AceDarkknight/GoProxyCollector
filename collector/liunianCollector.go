@@ -36,6 +36,7 @@ func (c *LiunianpCollector) Collect(ch chan<- *result.Result) {
 	response, bodyString, errs := gorequest.New().Get(c.currentUrl).Set("User-Agent", util.RandomUA()).End()
 	if len(errs) > 0 {
 		seelog.Errorf("%+v", errs)
+		return
 	}
 
 	if response.StatusCode != 200 {

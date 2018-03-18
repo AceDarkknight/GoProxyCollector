@@ -1,6 +1,7 @@
 package main
 
 import (
+	"sync"
 	"time"
 
 	"github.com/AceDarkkinght/GoProxyCollector/collector"
@@ -14,13 +15,7 @@ import (
 
 func main() {
 	// Load log.
-	logger, err := seelog.LoggerFromConfigAsFile("logConfig.xml")
-	if err != nil {
-		panic(err)
-	}
-
-	seelog.ReplaceLogger(logger)
-	seelog.Info("log initialize finish.")
+	scheduler.NewLogger("logConfig.xml")
 	defer seelog.Flush()
 
 	database, err := storage.NewBoltDbStorage("proxy.db", "IpList")
@@ -29,10 +24,10 @@ func main() {
 		panic(err)
 	}
 
-	seelog.Infof("database initialize finish.")
-
 	// Sync data.
 	database.SyncKeys()
+	seelog.Infof("database initialize finish.")
+	defer database.Close()
 
 	// Start server
 	go server.NewServer(database)
@@ -48,9 +43,26 @@ func main() {
 	}()
 
 	for {
-		c := collector.NewCollector(collector.KXDAILI)
-		scheduler.Run(c, database)
-	}
+		pendingTypes := collector.AllType()
 
-	defer database.Close()
+		var wg sync.WaitGroup
+		for _, pendingType := range pendingTypes {
+			wg.Add(1)
+			go func(t collector.Type) {
+				c := collector.NewCollector(t)
+				scheduler.RunCollector(c, database)
+
+				defer func() {
+					if r := recover(); r != nil {
+						seelog.Critical(r)
+					}
+				}()
+
+				defer wg.Done()
+			}(pendingType)
+		}
+
+		wg.Wait()
+		time.Sleep(time.Minute * 10)
+	}
 }

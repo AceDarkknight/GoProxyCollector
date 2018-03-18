@@ -7,6 +7,19 @@ type Collector interface {
 	Collect(chan<- *result.Result)
 }
 
+type Type uint8
+
+const (
+	XICI Type = iota
+	KUAIDAILI
+	DATA5U
+	CODERBUSY
+	LIUNIAN
+	IP181
+	IP3366
+	KXDAILI
+)
+
 func NewCollector(t Type) Collector {
 	switch t {
 	case XICI:
@@ -30,15 +43,15 @@ func NewCollector(t Type) Collector {
 	}
 }
 
-type Type uint8
-
-const (
-	XICI Type = iota
-	KUAIDAILI
-	DATA5U
-	CODERBUSY
-	LIUNIAN
-	IP181
-	IP3366
-	KXDAILI
-)
+func AllType() []Type {
+	return []Type{
+		XICI,
+		KUAIDAILI,
+		DATA5U,
+		CODERBUSY,
+		LIUNIAN,
+		IP181,
+		IP3366,
+		KXDAILI,
+	}
+}

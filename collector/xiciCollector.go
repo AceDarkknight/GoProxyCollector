@@ -115,6 +115,6 @@ func (c *XiciCollector) Collect(ch chan<- *result.Result) {
 		}
 	})
 
-	seelog.Debugf("finish collect url%s", c.currentUrl)
+	seelog.Debugf("finish collect url:%s", c.currentUrl)
 	defer close(ch)
 }

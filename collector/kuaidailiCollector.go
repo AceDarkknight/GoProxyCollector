@@ -45,6 +45,7 @@ func (c *KuaidailiCollector) Collect(ch chan<- *result.Result) {
 	response, _, errs := gorequest.New().Get(c.currentUrl).Set("User-Agent", util.RandomUA()).End()
 	if len(errs) > 0 {
 		seelog.Errorf("%+v", errs)
+		return
 	}
 
 	if response.StatusCode != 200 {
@@ -91,7 +92,6 @@ func (c *KuaidailiCollector) Collect(ch chan<- *result.Result) {
 				Speed:    speed,
 				Source:   c.currentUrl}
 
-			seelog.Debugf("%v", r)
 			ch <- r
 		}
 	})
