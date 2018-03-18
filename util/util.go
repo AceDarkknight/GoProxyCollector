@@ -82,3 +82,17 @@ func IsInputMatchRegex(input, regex string) bool {
 
 	return result
 }
+
+func MakeUrls(urlformat string, paramaters []string) []string {
+	result := make([]string, len(paramaters))
+	if urlformat == "" {
+		return result
+	}
+
+	if len(paramaters) == 0 {
+		result = append(result, urlformat)
+		return result
+	}
+
+	return result
+}

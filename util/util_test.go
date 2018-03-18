@@ -1,6 +1,7 @@
 package util
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -78,6 +79,27 @@ func TestIsInputMatchRegex(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := IsInputMatchRegex(tt.args.input, tt.args.regex); got != tt.want {
 				t.Errorf("IsInputMatchRegex() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestMakeUrls(t *testing.T) {
+	type args struct {
+		urlformat  string
+		paramaters []string
+	}
+	tests := []struct {
+		name string
+		args args
+		want []string
+	}{
+		{"test1", args{"", make([]string, 0)}, make([]string, 0)},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := MakeUrls(tt.args.urlformat, tt.args.paramaters); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("MakeUrls() = %v, want %v", got, tt.want)
 			}
 		})
 	}

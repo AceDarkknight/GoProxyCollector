@@ -63,6 +63,7 @@ func main() {
 		}
 
 		wg.Wait()
+		seelog.Debug("finish once, sleep 10 minutes.")
 		time.Sleep(time.Minute * 10)
 	}
 }
