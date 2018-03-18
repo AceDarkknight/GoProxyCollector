@@ -21,6 +21,10 @@ func NewCollector(t Type) Collector {
 		return NewLiunianpCollector()
 	case IP181:
 		return NewIp181Collector()
+	case IP3366:
+		return NewIp3366Collector()
+	case KXDAILI:
+		return NewKxdailiCollector()
 	default:
 		return nil
 	}
@@ -35,4 +39,6 @@ const (
 	CODERBUSY
 	LIUNIAN
 	IP181
+	IP3366
+	KXDAILI
 )

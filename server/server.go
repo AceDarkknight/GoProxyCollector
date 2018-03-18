@@ -25,7 +25,6 @@ func getIp(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("content-type", "application/json")
 		if s == nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(http.StatusText(http.StatusInternalServerError)))
 		}
 
 		_, result := s.GetRandomOne()
@@ -33,10 +32,8 @@ func getIp(w http.ResponseWriter, r *http.Request) {
 			w.Write(result)
 		} else {
 			w.WriteHeader(http.StatusNotFound)
-			w.Write([]byte(http.StatusText(http.StatusNotFound)))
 		}
 	} else {
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		w.Write([]byte(http.StatusText(http.StatusMethodNotAllowed)))
 	}
 }

@@ -8,13 +8,13 @@ import (
 
 	"github.com/AceDarkkinght/GoProxyCollector/result"
 	"github.com/AceDarkkinght/GoProxyCollector/util"
-
 	"github.com/PuerkitoBio/goquery"
+	"github.com/axgle/mahonia"
 	"github.com/cihub/seelog"
 	"github.com/parnurzeal/gorequest"
 )
 
-type KuaidailiCollector struct {
+type Ip3366Collector struct {
 	currentIndex int
 	firstIndex   int
 	lastIndex    int
@@ -22,14 +22,15 @@ type KuaidailiCollector struct {
 	currentUrl   string
 }
 
-func NewKuaidailiCollector() *KuaidailiCollector {
-	return &KuaidailiCollector{
+func NewIp3366Collector() *Ip3366Collector {
+	return &Ip3366Collector{
 		firstIndex: 1,
 		lastIndex:  10,
-		baseUrl:    "https://www.kuaidaili.com/free/intr/"}
+		baseUrl:    "http://www.ip3366.net/?stype=1&page=",
+	}
 }
 
-func (c *KuaidailiCollector) Next() bool {
+func (c *Ip3366Collector) Next() bool {
 	if c.currentIndex >= c.lastIndex {
 		return false
 	}
@@ -41,7 +42,7 @@ func (c *KuaidailiCollector) Next() bool {
 	return true
 }
 
-func (c *KuaidailiCollector) Collect(ch chan<- *result.Result) {
+func (c *Ip3366Collector) Collect(ch chan<- *result.Result) {
 	response, _, errs := gorequest.New().Get(c.currentUrl).Set("User-Agent", util.RandomUA()).End()
 	if len(errs) > 0 {
 		seelog.Errorf("%+v", errs)
@@ -60,6 +61,9 @@ func (c *KuaidailiCollector) Collect(ch chan<- *result.Result) {
 		return
 	}
 
+	// Because of the charset is gbk, need to decode first.
+	decoder := mahonia.NewDecoder("gbk")
+
 	selection := doc.Find("#list tr:not(:first-child)")
 	selection.Each(func(i int, sel *goquery.Selection) {
 		var (
@@ -69,8 +73,11 @@ func (c *KuaidailiCollector) Collect(ch chan<- *result.Result) {
 
 		ip := sel.Find("td:nth-child(1)").Text()
 		portString := sel.Find("td:nth-child(2)").Text()
-		location := sel.Find("td:nth-child(5)").Text()
-		speedString := sel.Find("td:nth-child(6)").Text()
+		location := sel.Find("td:nth-child(6)").Text()
+		speedString := sel.Find("td:nth-child(7)").Text()
+
+		speedString = decoder.ConvertString(speedString)
+		location = decoder.ConvertString(location)
 
 		if !util.IsIp(ip) {
 			ip = ""
@@ -78,7 +85,7 @@ func (c *KuaidailiCollector) Collect(ch chan<- *result.Result) {
 
 		port, _ = strconv.Atoi(portString)
 
-		reg := regexp.MustCompile(`^[1-9]\d*\.\d*|0\.\d*[1-9]\d*`)
+		reg := regexp.MustCompile(`^[1-9]\d*\.*\d*|0\.\d*[1-9]\d*`)
 		if strings.Contains(speedString, "秒") {
 			speed, _ = strconv.ParseFloat(reg.FindString(speedString), 64)
 		}

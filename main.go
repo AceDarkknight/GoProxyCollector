@@ -48,7 +48,7 @@ func main() {
 	}()
 
 	for {
-		c := collector.NewCollector(collector.IP181)
+		c := collector.NewCollector(collector.KXDAILI)
 		scheduler.Run(c, database)
 	}
 
