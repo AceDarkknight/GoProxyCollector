@@ -24,7 +24,7 @@ func NewCoderbusyCollector() *CoderbusyCollector {
 	return &CoderbusyCollector{
 		baseUrl:    "https://proxy.coderbusy.com/classical/https-ready.aspx?page=",
 		firstIndex: 1,
-		lastIndex:  20,
+		lastIndex:  15,
 	}
 }
 

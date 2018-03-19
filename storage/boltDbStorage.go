@@ -5,7 +5,6 @@ import (
 	"errors"
 	"math/rand"
 	"sync"
-	"time"
 
 	"github.com/boltdb/bolt"
 	"github.com/cihub/seelog"
@@ -149,11 +148,7 @@ func (s *BoltDbStorage) SyncKeys() {
 // Get one random record.
 func (s *BoltDbStorage) GetRandomOne() (string, []byte) {
 	s.mutex.Lock()
-	if len(s.Keys) == 0 {
-		s.SyncKeys()
-	}
-
-	key := s.Keys[rand.New(rand.NewSource(time.Now().Unix())).Intn(len(s.Keys))]
+	key := s.Keys[rand.Intn(len(s.Keys))]
 	s.mutex.Unlock()
 
 	return key, s.Get(key)

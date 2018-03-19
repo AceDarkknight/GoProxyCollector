@@ -3,13 +3,13 @@ package scheduler
 import (
 	"math/rand"
 	"os"
+	"reflect"
 	"time"
 
 	"github.com/AceDarkkinght/GoProxyCollector/collector"
 	"github.com/AceDarkkinght/GoProxyCollector/result"
 	"github.com/AceDarkkinght/GoProxyCollector/storage"
 	"github.com/AceDarkkinght/GoProxyCollector/verifier"
-
 	"github.com/cihub/seelog"
 )
 
@@ -36,11 +36,13 @@ func RunCollector(collector collector.Collector, storage storage.Storage) {
 		seelog.Debugf("sleep %d second", t)
 		time.Sleep(time.Duration(t) * time.Second)
 	}
+
+	seelog.Debugf("collector %s finish", reflect.ValueOf(collector).Type().String())
 }
 
 // NewLogger will load the seelog's configuration file.
 // If file name is not supplied, it will use default configuration.
-func NewLogger(fileName string) {
+func SetLogger(fileName string) {
 	if _, err := os.Stat(fileName); err == nil {
 		logger, err := seelog.LoggerFromConfigAsFile(fileName)
 		if err != nil {

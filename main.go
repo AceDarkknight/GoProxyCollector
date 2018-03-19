@@ -1,6 +1,7 @@
 package main
 
 import (
+	"reflect"
 	"sync"
 	"time"
 
@@ -15,7 +16,7 @@ import (
 
 func main() {
 	// Load log.
-	scheduler.NewLogger("logConfig.xml")
+	scheduler.SetLogger("logConfig.xml")
 	defer seelog.Flush()
 
 	database, err := storage.NewBoltDbStorage("proxy.db", "IpList")
@@ -50,7 +51,19 @@ func main() {
 			wg.Add(1)
 			go func(t collector.Type) {
 				c := collector.NewCollector(t)
-				scheduler.RunCollector(c, database)
+				done := make(chan bool, 1)
+
+				go func() {
+					scheduler.RunCollector(c, database)
+					done <- true
+				}()
+
+				// Set timeout to avoid deadlock.
+				select {
+				case <-done:
+				case <-time.After(7 * time.Minute):
+					seelog.Errorf("collector %s time out.", reflect.ValueOf(c).Type().String())
+				}
 
 				defer func() {
 					if r := recover(); r != nil {
