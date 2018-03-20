@@ -88,7 +88,7 @@ func IsInputMatchRegex(input, regex string) bool {
 // If urlFormat has incorrect format, return urlFormat itself.
 // If parameters contains empty string, won't format the that urlFormat.
 func MakeUrls(urlFormat string, parameters []string) []string {
-	result := make([]string, 0)
+	result := make([]string, 0, len(parameters))
 	if urlFormat == "" || !strings.Contains(urlFormat, "%s") {
 		result = append(result, urlFormat)
 		return result

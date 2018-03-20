@@ -14,27 +14,31 @@ import (
 
 type CoderbusyCollector struct {
 	currentIndex int
-	firstIndex   int
-	lastIndex    int
-	baseUrl      string
 	currentUrl   string
+	urls         []string
+	urlParameter []string
 }
 
 func NewCoderbusyCollector() *CoderbusyCollector {
+	parameter := []string{
+		"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15",
+	}
+
+	urls := util.MakeUrls("https://proxy.coderbusy.com/classical/https-ready.aspx?page=%s", parameter)
+
 	return &CoderbusyCollector{
-		baseUrl:    "https://proxy.coderbusy.com/classical/https-ready.aspx?page=",
-		firstIndex: 1,
-		lastIndex:  15,
+		urls:         urls,
+		urlParameter: parameter,
 	}
 }
 
 func (c *CoderbusyCollector) Next() bool {
-	if c.currentIndex >= c.lastIndex {
+	if c.currentIndex >= len(c.urls) {
 		return false
 	}
 
+	c.currentUrl = c.urls[c.currentIndex]
 	c.currentIndex++
-	c.currentUrl = c.baseUrl + strconv.Itoa(c.currentIndex)
 
 	seelog.Debugf("current url:%s", c.currentUrl)
 	return true

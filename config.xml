@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Configs>
+    <Config Name="">
+        <UrlFormat></UrlFormat>
+        <UrlParameters></UrlParameters>
+        <ValueRuleMap>
+            <Item Key="" Value=""/>
+            <Item Key="" Value=""/>
+            <Item Key="" Value=""/>
+            <Item Key="" Value=""/>
+            <Item Key="" Value=""/>
+        </ValueRuleMap>
+        <CollectType></CollectType>
+    </Config>
+</Configs>
