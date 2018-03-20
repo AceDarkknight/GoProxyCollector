@@ -86,19 +86,24 @@ func TestIsInputMatchRegex(t *testing.T) {
 
 func TestMakeUrls(t *testing.T) {
 	type args struct {
-		urlformat  string
-		paramaters []string
+		urlFormat  string
+		parameters []string
 	}
 	tests := []struct {
 		name string
 		args args
 		want []string
 	}{
-		{"test1", args{"", make([]string, 0)}, make([]string, 0)},
+		{"test1", args{"", make([]string, 0)}, []string{""}},
+		{"test2", args{"www.a.com", []string{"1", "2"}}, []string{"www.a.com"}},
+		{"test3", args{"www.a%s.com", []string{"1", "2"}}, []string{"www.a1.com", "www.a2.com"}},
+		{"test4", args{"www.a%s.com", []string{"", ""}}, []string{"www.a%s.com", "www.a%s.com"}},
+		{"test5", args{"", []string{""}}, []string{""}},
+		{"test6", args{"www.a%s.com", []string{"1", ""}}, []string{"www.a1.com", "www.a%s.com"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := MakeUrls(tt.args.urlformat, tt.args.paramaters); !reflect.DeepEqual(got, tt.want) {
+			if got := MakeUrls(tt.args.urlFormat, tt.args.parameters); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("MakeUrls() = %v, want %v", got, tt.want)
 			}
 		})

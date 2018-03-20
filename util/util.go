@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/parnurzeal/gorequest"
@@ -83,9 +84,13 @@ func IsInputMatchRegex(input, regex string) bool {
 	return result
 }
 
+// MakeUrls will make slice of url using urlFormat and parameters.
+// If urlFormat has incorrect format, return urlFormat itself.
+// If parameters contains empty string, won't format the that urlFormat.
 func MakeUrls(urlFormat string, parameters []string) []string {
-	result := make([]string, len(parameters))
-	if urlFormat == "" {
+	result := make([]string, 0)
+	if urlFormat == "" || !strings.Contains(urlFormat, "%s") {
+		result = append(result, urlFormat)
 		return result
 	}
 
@@ -95,7 +100,11 @@ func MakeUrls(urlFormat string, parameters []string) []string {
 	}
 
 	for _, parameter := range parameters {
-		result = append(result, fmt.Sprintf(urlFormat, parameter))
+		if parameter == "" {
+			result = append(result, urlFormat)
+		} else {
+			result = append(result, fmt.Sprintf(urlFormat, parameter))
+		}
 	}
 
 	return result
