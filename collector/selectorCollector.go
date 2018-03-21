@@ -29,7 +29,7 @@ func NewSelectorCollector(config *Config) *SelectorCollector {
 		return nil
 	}
 
-	if !config.Verify() || config.Type != COLLECTBYSELECTOR {
+	if !config.Verify() || config.Type != COLLECTBYSELECTOR || len(config.ValueRuleMap.Items) < 3 {
 		seelog.Errorf("config name:%s is unavailable, please check your collectorConfig.xml", config.Name)
 		return nil
 	}
@@ -38,11 +38,11 @@ func NewSelectorCollector(config *Config) *SelectorCollector {
 
 	for _, value := range config.ValueRuleMap.Items {
 		if value.Name == "table" {
-			selectorMap[value.Name] = []string{value.Path}
+			selectorMap[value.Name] = []string{value.Rule}
 		} else if value.Attr != "" {
-			selectorMap[value.Name] = []string{value.Path, value.Attr}
+			selectorMap[value.Name] = []string{value.Rule, value.Attr}
 		} else {
-			selectorMap[value.Name] = []string{value.Path}
+			selectorMap[value.Name] = []string{value.Rule}
 		}
 	}
 

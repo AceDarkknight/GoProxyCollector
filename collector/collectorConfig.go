@@ -19,7 +19,7 @@ type Config struct {
 	ValueRuleMap  struct {
 		Items []struct {
 			Name string `xml:"name,attr"`
-			Path string `xml:"path,attr"`
+			Rule string `xml:"rule,attr"`
 			Attr string `xml:"attribute,attr"`
 		} `xml:"item"`
 	} `xml:"valueNamePathMap"`
@@ -41,7 +41,10 @@ func NewCollectorConfig(fileName string) *Configs {
 
 	defer file.Close()
 	var configXml Configs
-	err = xml.NewDecoder(file).Decode(&configXml)
+	decoder := xml.NewDecoder(file)
+	// Comes from https://stackoverflow.com/questions/35191202/unmarshal-xml-with-unescaped-character-inside
+	decoder.Strict = false
+	err = decoder.Decode(&configXml)
 	if err != nil {
 		panic(err)
 	}
@@ -51,7 +54,7 @@ func NewCollectorConfig(fileName string) *Configs {
 
 // Verify will check the item parse from xml.
 func (c *Config) Verify() bool {
-	if c.UrlFormat == "" || len(c.ValueRuleMap.Items) < 3 {
+	if c.UrlFormat == "" {
 		return false
 	}
 

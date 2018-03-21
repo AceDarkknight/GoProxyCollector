@@ -1,17 +1,7 @@
 package collector
 
 import (
-	"net/http"
-	"regexp"
-	"strconv"
-	"strings"
-
 	"github.com/AceDarkkinght/GoProxyCollector/result"
-	"github.com/AceDarkkinght/GoProxyCollector/util"
-	"github.com/PuerkitoBio/goquery"
-	"github.com/axgle/mahonia"
-	"github.com/cihub/seelog"
-	"github.com/parnurzeal/gorequest"
 )
 
 type Collector interface {

@@ -14,11 +14,11 @@
         </valueNameRuleMap>
     </config>
     <config name="89ip">
-        <urlFormat>http://www.89ip.cn/tiqv.php?sxb=&tqsl=20&ports=&ktip=&xl=on&submit=%CC%E1++%C8%A1</urlFormat>
+        <urlFormat>http://www.89ip.cn/tiqv.php?sxb=&amp;tqsl=20&amp;ports=&amp;ktip=&amp;xl=on&amp;submit=%CC%E1++%C8%A1</urlFormat>
         <collectType>1</collectType>
         <charset>utf-8</charset>
         <valueNameRuleMap>
-            <item name=""/>
+            <item name="ip" rule="((?:(?:25[0-5]|2[0-4]\d|((1\d{2})|([1-9]?\d)))\.){3}(?:25[0-5]|2[0-4]\d|((1\d{2})|([1-9]?\d)))):[1-9]\d*"/>
         </valueNameRuleMap>
     </config>
 </configs>
