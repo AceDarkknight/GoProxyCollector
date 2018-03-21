@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<configs>
+    <config name="coderbusy">
+        <urlFormat>https://proxy.coderbusy.com/classical/https-ready.aspx?page=%s</urlFormat>
+        <urlParameters>1,2,3,4,5,6,7,8,9,10,11,12,13,14,15</urlParameters>
+        <collectType>0</collectType>
+        <charset>utf-8</charset>
+        <valueNameRuleMap>
+            <item name="table" rule=".table tr:not(:first-child)"/>
+            <item name="ip" rule="td:nth-child(2)" attribute="data-ip"/>
+            <item name="port" rule=".port-box"/>
+            <item name="location" rule="td:nth-child(3)"/>
+            <item name="speed" rule="td:nth-child(10)"/>
+        </valueNameRuleMap>
+    </config>
+    <config name="89ip">
+        <urlFormat>http://www.89ip.cn/tiqv.php?sxb=&tqsl=20&ports=&ktip=&xl=on&submit=%CC%E1++%C8%A1</urlFormat>
+        <collectType>1</collectType>
+        <charset>utf-8</charset>
+        <valueNameRuleMap>
+            <item name=""/>
+        </valueNameRuleMap>
+    </config>
+</configs>

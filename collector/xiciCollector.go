@@ -108,7 +108,6 @@ func (c *XiciCollector) Collect(ch chan<- *result.Result) {
 				Port:     port,
 				Location: location,
 				Speed:    speed,
-				LiveTime: liveTime,
 				Source:   c.currentUrl}
 
 			ch <- r

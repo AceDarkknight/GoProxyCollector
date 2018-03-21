@@ -43,6 +43,8 @@ func main() {
 		}
 	}()
 
+	Test(database)
+
 	for {
 		pendingTypes := collector.AllType()
 
@@ -78,5 +80,13 @@ func main() {
 		wg.Wait()
 		seelog.Debug("finish once, sleep 10 minutes.")
 		time.Sleep(time.Minute * 10)
+	}
+}
+
+func Test(storage storage.Storage) {
+	configs := collector.NewCollectorConfig("collectorConfig.xml")
+	for _, value := range configs.Configs {
+		c := value.Collector()
+		scheduler.RunCollector(c, storage)
 	}
 }

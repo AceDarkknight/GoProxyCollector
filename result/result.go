@@ -6,5 +6,4 @@ type Result struct {
 	Location string  `json:"location,omitempty"`
 	Source   string  `json:"source"`
 	Speed    float64 `json:"speed,omitempty"`
-	LiveTime int     `json:"live_time,omitempty"`
 }

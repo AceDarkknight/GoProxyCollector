@@ -1,33 +1,26 @@
 package collector
 
-import "os"
+import (
+	"encoding/xml"
+	"os"
+	"strings"
+)
 
-//github.com/antchfx/xmlquery
-//github.com/beevik/etree
-//type Configs struct {
-//	Config []struct {
-//	} `xml:"Configs>Config"`
-//}
-
-type Config struct {
-	Name          string   `xml:"name,attr"`
-	urlFormat     string   `xml:"urlFormat"`
-	urlParameters []string `xml:"urlParameters"`
-	currentUrl    string
-	currentIndex  int
-	ValueRuleMap  map[string]string
-	Type          CollectType
+type Configs struct {
+	Configs []Config `xml:"config"`
 }
 
-type ConfigXml struct {
-	Name          string   `xml:"name,attr"`
-	UrlFormat     string   `xml:"urlFormat"`
-	UrlParameters []string `xml:"urlParameters"`
+type Config struct {
+	Name          string      `xml:"name,attr"`
+	UrlFormat     string      `xml:"urlFormat"`
+	UrlParameters string      `xml:"urlParameters"`
+	Type          CollectType `xml:"collectType"`
+	Charset       string      `xml:"charset"`
 	ValueRuleMap  struct {
 		Items []struct {
 			Name string `xml:"name,attr"`
 			Path string `xml:"path,attr"`
-			Attr string `xml:"attr"`
+			Attr string `xml:"attribute,attr"`
 		} `xml:"item"`
 	} `xml:"valueNamePathMap"`
 }
@@ -35,15 +28,49 @@ type ConfigXml struct {
 type CollectType uint8
 
 const (
-	COLLECTBYSELECTOR = iota
+	COLLECTBYSELECTOR CollectType = iota
 	COLLECTBYREGEX
 )
 
-func NewCollectorConfig() *Config {
-	file, err := os.Open("config.xml")
+// NewCollectorConfig will read collector configuration xml file and parse the xml.
+func NewCollectorConfig(fileName string) *Configs {
+	file, err := os.Open(fileName)
 	if err != nil {
 		panic(err)
 	}
 
 	defer file.Close()
+	var configXml Configs
+	err = xml.NewDecoder(file).Decode(&configXml)
+	if err != nil {
+		panic(err)
+	}
+
+	return &configXml
+}
+
+// Verify will check the item parse from xml.
+func (c *Config) Verify() bool {
+	if c.UrlFormat == "" || len(c.ValueRuleMap.Items) < 3 {
+		return false
+	}
+
+	if c.Charset == "" {
+		c.Charset = "utf-8"
+	} else {
+		c.Charset = strings.ToLower(c.Charset)
+	}
+
+	return true
+}
+
+func (c *Config) Collector() Collector {
+	switch c.Type {
+	case COLLECTBYSELECTOR:
+		return NewSelectorCollector(c)
+	case COLLECTBYREGEX:
+		return nil
+	default:
+		return nil
+	}
 }

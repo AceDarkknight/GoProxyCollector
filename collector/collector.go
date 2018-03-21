@@ -1,9 +1,22 @@
 package collector
 
-import "github.com/AceDarkkinght/GoProxyCollector/result"
+import (
+	"net/http"
+	"regexp"
+	"strconv"
+	"strings"
+
+	"github.com/AceDarkkinght/GoProxyCollector/result"
+	"github.com/AceDarkkinght/GoProxyCollector/util"
+	"github.com/PuerkitoBio/goquery"
+	"github.com/axgle/mahonia"
+	"github.com/cihub/seelog"
+	"github.com/parnurzeal/gorequest"
+)
 
 type Collector interface {
 	Next() bool
+	Name() string
 	Collect(chan<- *result.Result)
 }
 
@@ -22,22 +35,22 @@ const (
 
 func NewCollector(t Type) Collector {
 	switch t {
-	case XICI:
-		return NewXiciCollector()
-	case KUAIDAILI:
-		return NewKuaidailiCollector()
-	case DATA5U:
-		return NewData5uCollector()
+	//case XICI:
+	//	return NewXiciCollector()
+	//case KUAIDAILI:
+	//	return NewKuaidailiCollector()
+	//case DATA5U:
+	//	return NewData5uCollector()
 	case CODERBUSY:
 		return NewCoderbusyCollector()
-	case LIUNIAN:
-		return NewLiunianpCollector()
-	case IP181:
-		return NewIp181Collector()
-	case IP3366:
-		return NewIp3366Collector()
-	case KXDAILI:
-		return NewKxdailiCollector()
+	//case LIUNIAN:
+	//	return NewLiunianpCollector()
+	//case IP181:
+	//	return NewIp181Collector()
+	//case IP3366:
+	//	return NewIp3366Collector()
+	//case KXDAILI:
+	//	return NewKxdailiCollector()
 	default:
 		return nil
 	}

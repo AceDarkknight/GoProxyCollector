@@ -3,7 +3,6 @@ package scheduler
 import (
 	"math/rand"
 	"os"
-	"reflect"
 	"time"
 
 	"github.com/AceDarkkinght/GoProxyCollector/collector"
@@ -19,6 +18,7 @@ func RunCollector(collector collector.Collector, storage storage.Storage) {
 		return
 	}
 
+	seelog.Debugf("start to run collector:%s", collector.Name())
 	for {
 		resultChan := make(chan *result.Result, 100)
 		if !collector.Next() {
@@ -37,7 +37,7 @@ func RunCollector(collector collector.Collector, storage storage.Storage) {
 		time.Sleep(time.Duration(t) * time.Second)
 	}
 
-	seelog.Debugf("collector %s finish", reflect.ValueOf(collector).Type().String())
+	seelog.Debugf("finish to run collector:%s finish", collector.Name())
 }
 
 // NewLogger will load the seelog's configuration file.

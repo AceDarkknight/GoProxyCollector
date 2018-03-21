@@ -44,6 +44,10 @@ func (c *CoderbusyCollector) Next() bool {
 	return true
 }
 
+func (c *CoderbusyCollector) Name() string {
+	return "https://proxy.coderbusy.com"
+}
+
 func (c *CoderbusyCollector) Collect(ch chan<- *result.Result) {
 	request, err := http.NewRequest("GET", c.currentUrl, nil)
 	if err != nil {
@@ -108,9 +112,10 @@ func (c *CoderbusyCollector) Collect(ch chan<- *result.Result) {
 				Port:     port,
 				Location: location,
 				Speed:    speed,
-				LiveTime: liveTime,
-				Source:   c.currentUrl}
+				//LiveTime: liveTime,
+				Source: c.currentUrl}
 
+			seelog.Debugf("%v", r)
 			ch <- r
 		}
 	})
