@@ -37,6 +37,11 @@ func NewSelectorCollector(config *Config) *SelectorCollector {
 	selectorMap := make(map[string][]string)
 
 	for _, value := range config.ValueRuleMap.Items {
+		if value.Name == "" || value.Rule == "" {
+			seelog.Errorf("config name:%s contains valueRuleMap item with empty name or rule, this item will be ignored.", config.Name)
+			continue
+		}
+
 		if value.Name == "table" {
 			selectorMap[value.Name] = []string{value.Rule}
 		} else if value.Attr != "" {

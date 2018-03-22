@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/http"
 	"reflect"
 	"sync"
 	"time"
@@ -10,15 +11,21 @@ import (
 	"github.com/AceDarkkinght/GoProxyCollector/server"
 	"github.com/AceDarkkinght/GoProxyCollector/storage"
 	"github.com/AceDarkkinght/GoProxyCollector/verifier"
+	_ "net/http/pprof"
 
 	"github.com/cihub/seelog"
 )
 
 func main() {
+	go func() {
+		http.ListenAndServe(":1234", nil)
+	}()
+
 	// Load log.
 	scheduler.SetLogger("logConfig.xml")
 	defer seelog.Flush()
 
+	// Load database.
 	database, err := storage.NewBoltDbStorage("proxy.db", "IpList")
 	if err != nil {
 		seelog.Critical(err)
@@ -33,7 +40,7 @@ func main() {
 	// Start server
 	go server.NewServer(database)
 
-	// Sync DB every 2min.
+	// Sync DB every 5min.
 	syncTicker := time.NewTicker(time.Minute * 5)
 	go func() {
 		for _ = range syncTicker.C {
@@ -43,20 +50,18 @@ func main() {
 		}
 	}()
 
-	Test(database)
-
+	configs := collector.NewCollectorConfig("collectorConfig.xml")
 	for {
-		pendingTypes := collector.AllType()
-
 		var wg sync.WaitGroup
-		for _, pendingType := range pendingTypes {
+
+		for _, c := range configs.Configs {
 			wg.Add(1)
-			go func(t collector.Type) {
-				c := collector.NewCollector(t)
+			go func(c *collector.Config) {
+				col := c.Collector()
 				done := make(chan bool, 1)
 
 				go func() {
-					scheduler.RunCollector(c, database)
+					scheduler.RunCollector(col, database)
 					done <- true
 				}()
 
@@ -64,7 +69,7 @@ func main() {
 				select {
 				case <-done:
 				case <-time.After(7 * time.Minute):
-					seelog.Errorf("collector %s time out.", reflect.ValueOf(c).Type().String())
+					seelog.Errorf("collector %s time out.", reflect.ValueOf(col).Type().String())
 				}
 
 				defer func() {
@@ -74,19 +79,11 @@ func main() {
 				}()
 
 				defer wg.Done()
-			}(pendingType)
+			}(c)
 		}
 
 		wg.Wait()
 		seelog.Debug("finish once, sleep 10 minutes.")
 		time.Sleep(time.Minute * 10)
-	}
-}
-
-func Test(storage storage.Storage) {
-	configs := collector.NewCollectorConfig("collectorConfig.xml")
-	for _, value := range configs.Configs {
-		c := value.Collector()
-		scheduler.RunCollector(c, storage)
 	}
 }

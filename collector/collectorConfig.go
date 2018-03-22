@@ -7,30 +7,23 @@ import (
 )
 
 type Configs struct {
-	Configs []Config `xml:"config"`
+	Configs []*Config `xml:"config"`
 }
 
 type Config struct {
-	Name          string      `xml:"name,attr"`
-	UrlFormat     string      `xml:"urlFormat"`
-	UrlParameters string      `xml:"urlParameters"`
-	Type          CollectType `xml:"collectType"`
-	Charset       string      `xml:"charset"`
+	Name          string `xml:"name,attr"`
+	UrlFormat     string `xml:"urlFormat"`
+	UrlParameters string `xml:"urlParameters"`
+	Type          Type   `xml:"collectType"`
+	Charset       string `xml:"charset"`
 	ValueRuleMap  struct {
 		Items []struct {
 			Name string `xml:"name,attr"`
 			Rule string `xml:"rule,attr"`
 			Attr string `xml:"attribute,attr"`
 		} `xml:"item"`
-	} `xml:"valueNamePathMap"`
+	} `xml:"valueNameRuleMap"`
 }
-
-type CollectType uint8
-
-const (
-	COLLECTBYSELECTOR CollectType = iota
-	COLLECTBYREGEX
-)
 
 // NewCollectorConfig will read collector configuration xml file and parse the xml.
 func NewCollectorConfig(fileName string) *Configs {
@@ -42,7 +35,8 @@ func NewCollectorConfig(fileName string) *Configs {
 	defer file.Close()
 	var configXml Configs
 	decoder := xml.NewDecoder(file)
-	// Comes from https://stackoverflow.com/questions/35191202/unmarshal-xml-with-unescaped-character-inside
+	// To void panic when there is '&' in xml.
+	// This comes from https://stackoverflow.com/questions/35191202/unmarshal-xml-with-unescaped-character-inside.
 	decoder.Strict = false
 	err = decoder.Decode(&configXml)
 	if err != nil {
@@ -72,7 +66,7 @@ func (c *Config) Collector() Collector {
 	case COLLECTBYSELECTOR:
 		return NewSelectorCollector(c)
 	case COLLECTBYREGEX:
-		return nil
+		return NewRegexCollector(c)
 	default:
 		return nil
 	}
