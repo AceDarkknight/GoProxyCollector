@@ -46,7 +46,7 @@ func VerifyAndSave(resultChan <-chan *result.Result, storage storage.Storage) {
 		wg.Add(1)
 		go func(r *result.Result) {
 			if util.VerifyProxyIp(r.Ip, r.Port) {
-				//storage.AddOrUpdate(r.Ip, r)
+				storage.AddOrUpdate(r.Ip, r)
 				seelog.Debugf("insert %s to DB", r.Ip)
 			}
 
