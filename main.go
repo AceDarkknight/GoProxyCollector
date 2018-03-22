@@ -1,7 +1,6 @@
 package main
 
 import (
-	"net/http"
 	"reflect"
 	"sync"
 	"time"
@@ -11,16 +10,11 @@ import (
 	"github.com/AceDarkkinght/GoProxyCollector/server"
 	"github.com/AceDarkkinght/GoProxyCollector/storage"
 	"github.com/AceDarkkinght/GoProxyCollector/verifier"
-	_ "net/http/pprof"
 
 	"github.com/cihub/seelog"
 )
 
 func main() {
-	go func() {
-		http.ListenAndServe(":1234", nil)
-	}()
-
 	// Load log.
 	scheduler.SetLogger("logConfig.xml")
 	defer seelog.Flush()
@@ -57,6 +51,15 @@ func main() {
 		for _, c := range configs.Configs {
 			wg.Add(1)
 			go func(c *collector.Config) {
+				defer wg.Done()
+
+				// Panic handle must define fist.
+				defer func() {
+					if r := recover(); r != nil {
+						seelog.Critical(r)
+					}
+				}()
+
 				col := c.Collector()
 				done := make(chan bool, 1)
 
@@ -72,13 +75,6 @@ func main() {
 					seelog.Errorf("collector %s time out.", reflect.ValueOf(col).Type().String())
 				}
 
-				defer func() {
-					if r := recover(); r != nil {
-						seelog.Critical(r)
-					}
-				}()
-
-				defer wg.Done()
 			}(c)
 		}
 
