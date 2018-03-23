@@ -8,6 +8,7 @@ import (
 
 	"github.com/AceDarkkinght/GoProxyCollector/result"
 	"github.com/AceDarkkinght/GoProxyCollector/util"
+
 	"github.com/cihub/seelog"
 	"github.com/parnurzeal/gorequest"
 )
@@ -20,6 +21,7 @@ type RegexCollector struct {
 	selectorMap   map[string]string
 }
 
+// NewRegexCollector will create a collector who using regular expression to get item.
 func NewRegexCollector(config *Config) *RegexCollector {
 	if config == nil {
 		return nil
@@ -66,7 +68,7 @@ func (c *RegexCollector) Name() string {
 	return c.configuration.Name
 }
 
-// TODO: Adapt to more websites.
+// TODO: Support to more websites.
 func (c *RegexCollector) Collect(ch chan<- *result.Result) {
 	// To avoid deadlock, channel must be closed.
 	defer close(ch)

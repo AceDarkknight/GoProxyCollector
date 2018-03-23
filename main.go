@@ -1,7 +1,6 @@
 package main
 
 import (
-	"sync"
 	"time"
 
 	"github.com/AceDarkkinght/GoProxyCollector/collector"
@@ -44,42 +43,5 @@ func main() {
 	}()
 
 	configs := collector.NewCollectorConfig("collectorConfig.xml")
-	for {
-		var wg sync.WaitGroup
-
-		for _, c := range configs.Configs {
-			wg.Add(1)
-			go func(c *collector.Config) {
-				defer wg.Done()
-
-				// Panic handle must define fist.
-				defer func() {
-					if r := recover(); r != nil {
-						seelog.Critical(r)
-					}
-				}()
-
-				col := c.Collector()
-				done := make(chan bool, 1)
-
-				go func() {
-					scheduler.RunCollector(col, database)
-					done <- true
-				}()
-
-				// Set timeout to avoid deadlock.
-				select {
-				case <-done:
-					seelog.Errorf("collector %s finish.", col.Name())
-				case <-time.After(7 * time.Minute):
-					seelog.Errorf("collector %s time out.", col.Name())
-				}
-
-			}(c)
-		}
-
-		wg.Wait()
-		seelog.Debug("finish once, sleep 10 minutes.")
-		time.Sleep(time.Minute * 10)
-	}
+	scheduler.Run(configs, database)
 }

@@ -24,6 +24,7 @@ type SelectorCollector struct {
 	selectorMap   map[string][]string
 }
 
+// NewRegexCollector will create a collector who using goquery to get item.
 func NewSelectorCollector(config *Config) *SelectorCollector {
 	if config == nil {
 		return nil
@@ -100,7 +101,7 @@ func (c *SelectorCollector) Collect(ch chan<- *result.Result) {
 
 	defer response.Body.Close()
 
-	// if the charset of website isn't utf-8, need to decode first.
+	// If the charset of website isn't utf-8, need to decode first.
 	var decoder mahonia.Decoder
 	if c.configuration.Charset != "utf-8" {
 		decoder = mahonia.NewDecoder(c.configuration.Charset)

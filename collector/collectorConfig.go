@@ -7,7 +7,7 @@ import (
 )
 
 type Configs struct {
-	Configs []*Config `xml:"config"`
+	Configs []Config `xml:"config"`
 }
 
 type Config struct {
@@ -61,6 +61,7 @@ func (c *Config) Verify() bool {
 	return true
 }
 
+// Collector will generate a collector by the CollectType value in config xml.
 func (c *Config) Collector() Collector {
 	switch c.Type {
 	case COLLECTBYSELECTOR:

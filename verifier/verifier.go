@@ -7,6 +7,7 @@ import (
 	"github.com/AceDarkkinght/GoProxyCollector/result"
 	"github.com/AceDarkkinght/GoProxyCollector/storage"
 	"github.com/AceDarkkinght/GoProxyCollector/util"
+
 	"github.com/cihub/seelog"
 )
 

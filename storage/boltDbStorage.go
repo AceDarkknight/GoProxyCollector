@@ -60,17 +60,12 @@ func NewBoltDbStorage(fileName string, bucketName string) (*BoltDbStorage, error
 
 // Exist will check the given key is existed in DB or not.
 func (s *BoltDbStorage) Exist(key string) bool {
-	exist := false
-	if s.Get(key) != nil {
-		exist = true
-	}
-
-	return exist
+	return s.Get(key) != nil
 }
 
 // Get will get the json byte value of key.
 func (s *BoltDbStorage) Get(key string) []byte {
-	value := make([]byte, 0)
+	var value []byte
 	s.Db.View(func(tx *bolt.Tx) error {
 		value = append(value, tx.Bucket([]byte(s.bucketName)).Get([]byte(key))...)
 		return nil
@@ -94,8 +89,12 @@ func (s *BoltDbStorage) Delete(key string) bool {
 }
 
 // AddOrUpdate will add the value into DB if key is not existed, otherwise update the existing value.
-// Value will be marshal as json format.
+// Null value will be ignored and the value will be marshal as json format.
 func (s *BoltDbStorage) AddOrUpdate(key string, value interface{}) error {
+	if value == nil {
+		return errors.New("value is null")
+	}
+
 	content, err := json.Marshal(value)
 	if err != nil {
 		return err
