@@ -108,7 +108,7 @@ func (c *RegexCollector) Collect(ch chan<- *result.Result) {
 				Source: c.currentUrl,
 			}
 
-			seelog.Debugf("%v", r)
+			//seelog.Debugf("%v", r)
 			ch <- r
 		}
 	}

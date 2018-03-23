@@ -172,7 +172,7 @@ func (c *SelectorCollector) Collect(ch chan<- *result.Result) {
 				Speed:    speed,
 				Source:   c.currentUrl}
 
-			seelog.Debugf("%v", r)
+			//seelog.Debugf("%v", r)
 			ch <- r
 		}
 	})

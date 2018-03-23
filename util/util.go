@@ -49,7 +49,7 @@ func VerifyProxyIp(ip string, port int) bool {
 		Timeout(time.Second * 6).
 		End()
 
-	if errs != nil {
+	if errs != nil && len(errs) > 0 {
 		return false
 	}
 

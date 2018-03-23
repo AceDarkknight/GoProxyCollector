@@ -1,7 +1,6 @@
 package main
 
 import (
-	"reflect"
 	"sync"
 	"time"
 
@@ -71,8 +70,9 @@ func main() {
 				// Set timeout to avoid deadlock.
 				select {
 				case <-done:
+					seelog.Errorf("collector %s finish.", col.Name())
 				case <-time.After(7 * time.Minute):
-					seelog.Errorf("collector %s time out.", reflect.ValueOf(col).Type().String())
+					seelog.Errorf("collector %s time out.", col.Name())
 				}
 
 			}(c)

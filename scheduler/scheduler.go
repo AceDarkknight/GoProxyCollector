@@ -3,7 +3,6 @@ package scheduler
 import (
 	"math/rand"
 	"os"
-	"sync"
 	"time"
 
 	"github.com/AceDarkkinght/GoProxyCollector/collector"
@@ -19,9 +18,6 @@ func RunCollector(collector collector.Collector, storage storage.Storage) {
 		return
 	}
 
-	v := verifier.NewVerifier()
-	rs := make(chan *result.Result, 100)
-
 	seelog.Debugf("start to run collector:%s", collector.Name())
 	for {
 		resultChan := make(chan *result.Result, 100)
@@ -32,15 +28,7 @@ func RunCollector(collector collector.Collector, storage storage.Storage) {
 		// Collect.
 		go collector.Collect(resultChan)
 
-		// Verify.
-		go v.Verify(resultChan, rs)
-
-		// Add or update storage.
-		for r := range rs {
-			storage.AddOrUpdate(r.Ip, r)
-		}
-
-		//verifier.VerifyAndSave(resultChan, storage)
+		verifier.VerifyAndSave(resultChan, storage)
 
 		// Wait at least 5s to avoid the website block our IP.
 		t := rand.New(rand.NewSource(time.Now().Unix())).Intn(10) + 5
@@ -82,44 +70,4 @@ func SetLogger(fileName string) {
 	}
 
 	seelog.Info("log initialize finish.")
-}
-
-func Run(configs []*collector.Config, storage storage.Storage, verifier *verifier.Verifier) {
-	if len(configs) == 0 || storage == nil || verifier == nil {
-		seelog.Error("scheduler run error: parameter has nil value")
-		return
-	}
-
-	var wg sync.WaitGroup
-	results := make(chan *result.Result, 1000)
-	availableResults := make(chan *result.Result, 1000)
-	done := make(chan bool, len(configs))
-	for {
-		for _, configuration := range configs {
-			wg.Add(1)
-
-			go func(c *collector.Config) {
-				defer wg.Done()
-				col := c.Collector()
-				for {
-					if !col.Next() {
-						break
-					}
-
-					go func() {
-						col.Collect(results)
-						done <- true
-					}()
-
-					go verifier.Verify(results, availableResults)
-
-					for rs := range availableResults {
-						storage.AddOrUpdate(rs.Ip, rs)
-					}
-				}
-			}(configuration)
-		}
-
-		wg.Wait()
-	}
 }
