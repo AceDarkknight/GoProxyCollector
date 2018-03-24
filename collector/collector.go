@@ -7,7 +7,7 @@ import (
 type Collector interface {
 	Next() bool
 	Name() string
-	Collect(chan<- *result.Result)
+	Collect(chan<- *result.Result) []error
 }
 
 type Type uint8

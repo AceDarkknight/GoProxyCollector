@@ -1,6 +1,8 @@
 package collector
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -84,19 +86,20 @@ func (c *SelectorCollector) Name() string {
 	return c.configuration.Name
 }
 
-func (c *SelectorCollector) Collect(ch chan<- *result.Result) {
+func (c *SelectorCollector) Collect(ch chan<- *result.Result) []error {
 	// To avoid deadlock, channel must be closed.
 	defer close(ch)
 
 	response, _, errs := gorequest.New().Get(c.currentUrl).Set("User-Agent", util.RandomUA()).End()
 	if len(errs) > 0 {
 		seelog.Errorf("%+v", errs)
-		return
+		return errs
 	}
 
 	if response.StatusCode != 200 {
-		seelog.Errorf("GET %s failed, status code:%s", c.currentUrl, http.StatusText(response.StatusCode))
-		return
+		errorMessage := fmt.Sprintf("GET %s failed, status code:%s", c.currentUrl, http.StatusText(response.StatusCode))
+		seelog.Error(errorMessage)
+		return []error{errors.New(errorMessage)}
 	}
 
 	defer response.Body.Close()
@@ -110,8 +113,9 @@ func (c *SelectorCollector) Collect(ch chan<- *result.Result) {
 	// Use goquery to find elements.
 	doc, err := goquery.NewDocumentFromReader(response.Body)
 	if err != nil {
-		seelog.Errorf("parse %s error:%v", c.currentUrl, err)
-		return
+		errorMessage := fmt.Sprintf("parse %s error:%v", c.currentUrl, err)
+		seelog.Error(errorMessage)
+		return []error{errors.New(errorMessage)}
 	}
 
 	selection := doc.Find(c.selectorMap["table"][0])
@@ -179,4 +183,5 @@ func (c *SelectorCollector) Collect(ch chan<- *result.Result) {
 	})
 
 	seelog.Debugf("finish collect url:%s", c.currentUrl)
+	return nil
 }

@@ -41,39 +41,6 @@ func runCollector(collector collector.Collector, storage storage.Storage) {
 	seelog.Debugf("finish to run collector:%s finish", collector.Name())
 }
 
-// NewLogger will load the seelog's configuration file.
-// If file name is not supplied, it will use default configuration.
-func SetLogger(fileName string) {
-	if _, err := os.Stat(fileName); err == nil {
-		logger, err := seelog.LoggerFromConfigAsFile(fileName)
-		if err != nil {
-			panic(err)
-		}
-
-		seelog.ReplaceLogger(logger)
-	} else {
-		configString := `<seelog>
-                        <outputs formatid="main">
-                            <filter levels="info,error,critical">
-                                <rollingfile type="date" filename="log/AppLog.log" namemode="prefix" datepattern="02.01.2006"/>
-                            </filter>
-                            <console/>
-                        </outputs>
-                        <formats>
-                            <format id="main" format="%Date %Time [%LEVEL] %Msg%n"/>
-                        </formats>
-                        </seelog>`
-		logger, err := seelog.LoggerFromConfigAsString(configString)
-		if err != nil {
-			panic(err)
-		}
-
-		seelog.ReplaceLogger(logger)
-	}
-
-	seelog.Info("log initialize finish.")
-}
-
 // Run will start to run the collectors.
 func Run(configs *collector.Configs, storage storage.Storage) {
 	if configs == nil || storage == nil {
@@ -107,7 +74,7 @@ func Run(configs *collector.Configs, storage storage.Storage) {
 				// Set timeout to avoid deadlock.
 				select {
 				case <-done:
-					seelog.Errorf("collector %s finish.", c.Name)
+					seelog.Debugf("collector %s finish.", c.Name)
 				case <-time.After(7 * time.Minute):
 					seelog.Errorf("collector %s time out.", c.Name)
 				}
@@ -119,4 +86,37 @@ func Run(configs *collector.Configs, storage storage.Storage) {
 		seelog.Debug("finish once, sleep 10 minutes.")
 		time.Sleep(time.Minute * 10)
 	}
+}
+
+// NewLogger will load the seelog's configuration file.
+// If file name is not supplied, it will use default configuration.
+func SetLogger(fileName string) {
+	if _, err := os.Stat(fileName); err == nil {
+		logger, err := seelog.LoggerFromConfigAsFile(fileName)
+		if err != nil {
+			panic(err)
+		}
+
+		seelog.ReplaceLogger(logger)
+	} else {
+		configString := `<seelog>
+                        <outputs formatid="main">
+                            <filter levels="info,error,critical">
+                                <rollingfile type="date" filename="log/AppLog.log" namemode="prefix" datepattern="02.01.2006"/>
+                            </filter>
+                            <console/>
+                        </outputs>
+                        <formats>
+                            <format id="main" format="%Date %Time [%LEVEL] %Msg%n"/>
+                        </formats>
+                        </seelog>`
+		logger, err := seelog.LoggerFromConfigAsString(configString)
+		if err != nil {
+			panic(err)
+		}
+
+		seelog.ReplaceLogger(logger)
+	}
+
+	seelog.Info("log initialize finish.")
 }

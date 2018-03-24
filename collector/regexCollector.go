@@ -1,6 +1,8 @@
 package collector
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -69,31 +71,34 @@ func (c *RegexCollector) Name() string {
 }
 
 // TODO: Support to more websites.
-func (c *RegexCollector) Collect(ch chan<- *result.Result) {
+func (c *RegexCollector) Collect(ch chan<- *result.Result) []error {
 	// To avoid deadlock, channel must be closed.
 	defer close(ch)
 
 	response, bodyString, errs := gorequest.New().Get(c.currentUrl).Set("User-Agent", util.RandomUA()).End()
 	if len(errs) > 0 {
 		seelog.Errorf("%+v", errs)
-		return
+		return errs
 	}
 
 	if response.StatusCode != 200 {
-		seelog.Errorf("GET %s failed, status code:%s", c.currentUrl, http.StatusText(response.StatusCode))
-		return
+		errorMessage := fmt.Sprintf("GET %s failed, status code:%s", c.currentUrl, http.StatusText(response.StatusCode))
+		seelog.Error(errorMessage)
+		return []error{errors.New(errorMessage)}
 	}
 
 	if bodyString == "" {
-		seelog.Errorf("parse %s failed, can not find body", c.currentUrl)
-		return
+		errorMessage := fmt.Sprintf("parse %s failed, can not parse response body.", c.currentUrl)
+		seelog.Error(errorMessage)
+		return []error{errors.New(errorMessage)}
 	}
 
 	regex := regexp.MustCompile(c.selectorMap["ip"])
 	ipAddresses := regex.FindAllString(bodyString, -1)
-	if len(ipAddresses) <= 0 {
-		seelog.Errorf("can not found correct format ip address in url:%s", c.currentUrl)
-		return
+	if len(ipAddresses) == 0 {
+		errorMessage := fmt.Sprintf("can not found correct format ip address in url:%s", c.currentUrl)
+		seelog.Error(errorMessage)
+		return []error{errors.New(errorMessage)}
 	}
 
 	for _, ipAddress := range ipAddresses {
@@ -116,4 +121,5 @@ func (c *RegexCollector) Collect(ch chan<- *result.Result) {
 	}
 
 	seelog.Debugf("finish collect url:%s", c.currentUrl)
+	return nil
 }
