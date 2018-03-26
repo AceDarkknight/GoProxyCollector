@@ -7,8 +7,6 @@ WORKDIR /app
 
 COPY . /app
 
-RUN apt-get update && apt-get install sqlite3 -y
-
 EXPOSE 8090/tcp
 
 ENTRYPOINT ./GoProxyCollector
