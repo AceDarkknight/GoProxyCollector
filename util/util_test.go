@@ -100,6 +100,7 @@ func TestMakeUrls(t *testing.T) {
 		{"test4", args{"www.a%s.com", []string{"", ""}}, []string{"www.a%s.com", "www.a%s.com"}},
 		{"test5", args{"", []string{""}}, []string{""}},
 		{"test6", args{"www.a%s.com", []string{"1", ""}}, []string{"www.a1.com", "www.a%s.com"}},
+		{"test7", args{"www.a.com", make([]string, 0)}, []string{"www.a.com"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
