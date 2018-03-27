@@ -4,6 +4,8 @@ import (
 	"net/http"
 
 	"github.com/AceDarkknight/GoProxyCollector/storage"
+	
+    "github.com/cihub/seelog"
 )
 
 var s storage.Storage
@@ -13,6 +15,12 @@ func NewServer(storage storage.Storage) {
 	if storage != nil {
 		s = storage
 	}
+	
+	defer func() {
+	    if r:=recover();r!=nil{
+	        seelog.Critical(r)
+        }
+    }()
 
 	http.HandleFunc("/get", getIp)
 	http.HandleFunc("/delete", deleteIp)
