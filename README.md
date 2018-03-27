@@ -44,7 +44,7 @@ Currently this project will fetch proxy from these website.
 - http://www.data5u.com
 - https://proxy.coderbusy.com
 
-## Collect from more website
+## Extension
 If you want to fetch from other website, you can modify the configuration file.
 ```
 github.com\AceDarkknight\GoProxyCollector\collectorConfig.xml

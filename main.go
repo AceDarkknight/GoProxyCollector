@@ -25,7 +25,7 @@ func main() {
 	}
 
 	// Sync data.
-	database.SyncKeys()
+	database.Sync()
 	seelog.Infof("database initialize finish.")
 	defer database.Close()
 
@@ -37,7 +37,7 @@ func main() {
 	go func() {
 		for _ = range syncTicker.C {
 			verifier.VerifyAndDelete(database)
-			database.SyncKeys()
+			database.Sync()
 			seelog.Debug("verify and sync database.")
 		}
 	}()
