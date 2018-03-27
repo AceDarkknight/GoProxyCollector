@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"sync"
 
-	"github.com/AceDarkkinght/GoProxyCollector/result"
-	"github.com/AceDarkkinght/GoProxyCollector/storage"
-	"github.com/AceDarkkinght/GoProxyCollector/util"
+	"github.com/AceDarkknight/GoProxyCollector/result"
+	"github.com/AceDarkknight/GoProxyCollector/storage"
+	"github.com/AceDarkknight/GoProxyCollector/util"
 
 	"github.com/cihub/seelog"
 )

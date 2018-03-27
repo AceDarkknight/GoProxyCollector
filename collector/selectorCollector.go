@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/AceDarkkinght/GoProxyCollector/result"
-	"github.com/AceDarkkinght/GoProxyCollector/util"
+	"github.com/AceDarkknight/GoProxyCollector/result"
+	"github.com/AceDarkknight/GoProxyCollector/util"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/axgle/mahonia"

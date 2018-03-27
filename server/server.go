@@ -3,7 +3,7 @@ package server
 import (
 	"net/http"
 
-	"github.com/AceDarkkinght/GoProxyCollector/storage"
+	"github.com/AceDarkknight/GoProxyCollector/storage"
 )
 
 var s storage.Storage
