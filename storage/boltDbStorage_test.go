@@ -2,8 +2,12 @@ package storage
 
 import (
 	"encoding/json"
+	"math/rand"
 	"reflect"
+	"strconv"
 	"testing"
+
+	"github.com/boltdb/bolt"
 )
 
 var testDb *BoltDbStorage
@@ -14,14 +18,29 @@ type testResult struct {
 
 func init() {
 	testDb, _ = NewBoltDbStorage("test.db", "testBucket")
-	testDb.AddOrUpdate("2", testResult{1})
-	testDb.AddOrUpdate("0", nil)
-	testDb.AddOrUpdate("3", testResult{})
+}
+
+func createBucket() {
+	testDb.Db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucketIfNotExists([]byte("testBucket"))
+		return err
+	})
+}
+
+func deleteBucket() {
+	testDb.Db.Update(func(tx *bolt.Tx) error {
+		return tx.DeleteBucket([]byte("testBucket"))
+	})
 }
 
 func TestBoltDbStorage_Get(t *testing.T) {
-	expect1, _ := json.Marshal(testResult{1})
-	expect2, _ := json.Marshal(testResult{})
+	createBucket()
+	testDb.AddOrUpdate("2", &testResult{1})
+	testDb.AddOrUpdate("0", nil)
+	testDb.AddOrUpdate("3", &testResult{})
+
+	expect1, _ := json.Marshal(&testResult{1})
+	expect2, _ := json.Marshal(&testResult{})
 
 	type args struct {
 		key string
@@ -44,9 +63,16 @@ func TestBoltDbStorage_Get(t *testing.T) {
 			}
 		})
 	}
+
+	deleteBucket()
 }
 
 func TestBoltDbStorage_Exist(t *testing.T) {
+	createBucket()
+	testDb.AddOrUpdate("2", &testResult{1})
+	testDb.AddOrUpdate("0", nil)
+	testDb.AddOrUpdate("3", &testResult{})
+
 	type args struct {
 		key string
 	}
@@ -68,11 +94,18 @@ func TestBoltDbStorage_Exist(t *testing.T) {
 			}
 		})
 	}
+
+	deleteBucket()
 }
 
 func TestBoltDbStorage_GetAll(t *testing.T) {
-	expect1, _ := json.Marshal(testResult{1})
-	expect2, _ := json.Marshal(testResult{})
+	createBucket()
+	testDb.AddOrUpdate("2", &testResult{1})
+	testDb.AddOrUpdate("0", nil)
+	testDb.AddOrUpdate("3", &testResult{})
+
+	expect1, _ := json.Marshal(&testResult{1})
+	expect2, _ := json.Marshal(&testResult{})
 	want := make(map[string][]byte)
 	want["2"] = expect1
 	want["3"] = expect2
@@ -90,4 +123,55 @@ func TestBoltDbStorage_GetAll(t *testing.T) {
 			}
 		})
 	}
+
+	deleteBucket()
+}
+
+func BenchmarkBoltDbStorage_AddOrUpdate(b *testing.B) {
+	createBucket()
+	b.ReportAllocs()
+
+	for i := 0; i < b.N; i++ {
+		testDb.AddOrUpdate(strconv.Itoa(i), &testResult{})
+	}
+
+	deleteBucket()
+}
+
+func BenchmarkBoltDbStorage_AddOrUpdateParallel(b *testing.B) {
+	createBucket()
+	b.ReportAllocs()
+
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			key := rand.Intn(100000)
+			testDb.AddOrUpdate(strconv.Itoa(key), &testResult{})
+		}
+	})
+
+	deleteBucket()
+}
+
+func BenchmarkBoltDbStorage_Get(b *testing.B) {
+	createBucket()
+	b.ReportAllocs()
+
+	for i := 0; i < b.N; i++ {
+		testDb.Get(strconv.Itoa(i))
+	}
+
+	deleteBucket()
+}
+
+func BenchmarkBoltDbStorage_GetParallel(b *testing.B) {
+	createBucket()
+	b.ReportAllocs()
+
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			testDb.Get(strconv.Itoa(rand.Intn(100)))
+		}
+	})
+
+	deleteBucket()
 }
