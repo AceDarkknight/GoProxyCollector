@@ -181,15 +181,15 @@ func (s *BoltDbStorage) Sync() {
 }
 
 // Get one random record.
-func (s *BoltDbStorage) GetRandomOne() (string, []byte) {
+func (s *BoltDbStorage) GetRandomOne() []byte {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
 	if len(s.Keys) == 0 {
-		return "", nil
+		return nil
 	}
 
 	key := s.Keys[rand.New(rand.NewSource(time.Now().Unix())).Intn(len(s.Keys))]
 
-	return key, s.Get(key)
+	return s.Get(key)
 }

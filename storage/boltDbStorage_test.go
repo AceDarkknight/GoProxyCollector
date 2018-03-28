@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"reflect"
 	"strconv"
+	"sync"
 	"testing"
 
 	"github.com/boltdb/bolt"
@@ -123,6 +124,81 @@ func TestBoltDbStorage_GetAll(t *testing.T) {
 			}
 		})
 	}
+
+	deleteBucket()
+}
+
+func TestBoltDbStorage_AddOrUpdateParallel(t *testing.T) {
+	createBucket()
+	var wg sync.WaitGroup
+	num := 200
+	for i := 0; i < num; i++ {
+		wg.Add(1)
+		key := strconv.Itoa(i)
+		value := &testResult{t: i}
+		go func(k string, v *testResult) {
+			defer wg.Done()
+			testDb.AddOrUpdate(k, v)
+		}(key, value)
+	}
+
+	wg.Wait()
+	for i := 0; i < num; i++ {
+		key := strconv.Itoa(i)
+		value := &testResult{t: i}
+		want, _ := json.Marshal(value)
+		t.Run(key, func(t *testing.T) {
+			if got := testDb.Get(key); !reflect.DeepEqual(got, want) {
+				t.Errorf("parallel run BoltDbStorage.AddOrUpdate() = %v,want %v ", got, want)
+			}
+		})
+	}
+
+	t.Run("all", func(t *testing.T) {
+		if got := testDb.GetAll(); len(got) != num {
+			t.Errorf("parallel run BoltDbStorage.AddOrUpdate() = %v,want %v ", got, num)
+		}
+	})
+
+	deleteBucket()
+}
+
+func TestBoltDbStorage_DeleteParallel(t *testing.T) {
+	createBucket()
+	var wg sync.WaitGroup
+	num := 200
+	for i := 0; i < num; i++ {
+		key := strconv.Itoa(i)
+		value := &testResult{t: i}
+		testDb.AddOrUpdate(key, value)
+	}
+
+	for i := 0; i < num; i++ {
+		wg.Add(1)
+		key := strconv.Itoa(i)
+		go func(k string) {
+			defer wg.Done()
+			testDb.Delete(k)
+		}(key)
+	}
+
+	wg.Wait()
+	for i := 0; i < num; i++ {
+		key := strconv.Itoa(i)
+		var want []byte
+		t.Run(key, func(t *testing.T) {
+			if got := testDb.Get(key); !reflect.DeepEqual(got, want) {
+				t.Errorf("parallel run BoltDbStorage.Delet() = %v,want %v ", got, want)
+			}
+		})
+	}
+
+	t.Run("all", func(t *testing.T) {
+		want := make(map[string][]byte)
+		if got := testDb.GetAll(); !reflect.DeepEqual(got, want) {
+			t.Errorf("parallel run BoltDbStorage.AddOrUpdate() = %v,want %v ", got, want)
+		}
+	})
 
 	deleteBucket()
 }

@@ -7,5 +7,5 @@ type Storage interface {
 	AddOrUpdate(string, interface{}) error
 	GetAll() map[string][]byte
 	Close()
-	GetRandomOne() (string, []byte)
+	GetRandomOne() []byte
 }
