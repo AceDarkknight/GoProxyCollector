@@ -132,7 +132,7 @@ func (s *BoltDbStorage) Close() {
 }
 
 // SyncKeys will sync the DB's key to memory.
-func (s *BoltDbStorage) SyncKeys() {
+func (s *BoltDbStorage) Sync() {
 	result := s.GetAll()
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
