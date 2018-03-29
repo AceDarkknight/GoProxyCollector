@@ -37,8 +37,7 @@ func main() {
 	go func() {
 		for _ = range syncTicker.C {
 			verifier.VerifyAndDelete(database)
-			database.Sync()
-			seelog.Debug("verify and sync database.")
+			seelog.Debug("verify database.")
 		}
 	}()
 

@@ -5,6 +5,7 @@ GoProxyCollector is a proxy collector written in Go.
 - Out-of-box: Use [boltdb](https://github.com/boltdb/bolt) as embedded storage. No need to install extra database.
 - Configurable: Easy to support more proxy website by add your own rule in configuration.
 ## Getting Start
+- Make sure your Go version >= 1.9
 - Download
 ```
 go get -u github.com/AceDarkknight/GoProxyCollector

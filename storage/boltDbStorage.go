@@ -5,17 +5,17 @@ import (
 	"errors"
 	"math/rand"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/boltdb/bolt"
-	"github.com/cihub/seelog"
 )
 
 type BoltDbStorage struct {
 	Db         *bolt.DB
-	Keys       []string
 	bucketName string
-	mutex      sync.Mutex
+	contents   sync.Map
+	count      int32
 }
 
 // NewBoltDbStorage will return a boltdb object and error.
@@ -47,12 +47,9 @@ func NewBoltDbStorage(fileName string, bucketName string) (*BoltDbStorage, error
 		return nil, err
 	}
 
-	keys := make([]string, 0, 10000)
-
 	storage := BoltDbStorage{
 		Db:         db,
 		bucketName: bucketName,
-		Keys:       keys,
 	}
 
 	return &storage, nil
@@ -66,10 +63,12 @@ func (s *BoltDbStorage) Exist(key string) bool {
 // Get will get the json byte value of key.
 func (s *BoltDbStorage) Get(key string) []byte {
 	var value []byte
-	s.Db.View(func(tx *bolt.Tx) error {
-		value = append(value, tx.Bucket([]byte(s.bucketName)).Get([]byte(key))...)
-		return nil
-	})
+
+	if temp, ok := s.contents.Load(key); ok {
+		if content, ok := temp.([]byte); ok {
+			value = append(value, content...)
+		}
+	}
 
 	return value
 }
@@ -83,6 +82,10 @@ func (s *BoltDbStorage) Delete(key string) bool {
 
 	if err == nil {
 		isSucceed = true
+		if _, ok := s.contents.Load(key); ok {
+			s.contents.Delete(key)
+			atomic.AddInt32(&s.count, -1)
+		}
 	}
 
 	return isSucceed
@@ -104,6 +107,12 @@ func (s *BoltDbStorage) AddOrUpdate(key string, value interface{}) error {
 		return tx.Bucket([]byte(s.bucketName)).Put([]byte(key), content)
 	})
 
+	if err == nil {
+		if _, loaded := s.contents.LoadOrStore(key, content); !loaded {
+			atomic.AddInt32(&s.count, 1)
+		}
+	}
+
 	return err
 }
 
@@ -111,16 +120,14 @@ func (s *BoltDbStorage) AddOrUpdate(key string, value interface{}) error {
 func (s *BoltDbStorage) GetAll() map[string][]byte {
 	result := make(map[string][]byte)
 
-	s.Db.View(func(tx *bolt.Tx) error {
-		tx.Bucket([]byte(s.bucketName)).ForEach(func(k, v []byte) error {
-			key, value := make([]byte, len(k)), make([]byte, len(v))
-			copy(key, k)
-			copy(value, v)
-			result[string(key)] = value
-			return nil
-		})
+	s.contents.Range(func(key, value interface{}) bool {
+		if k, ok := key.(string); ok {
+			if v, ok := value.([]byte); ok {
+				result[k] = v
+			}
+		}
 
-		return nil
+		return true
 	})
 
 	return result
@@ -133,28 +140,50 @@ func (s *BoltDbStorage) Close() {
 
 // SyncKeys will sync the DB's key to memory.
 func (s *BoltDbStorage) Sync() {
-	result := s.GetAll()
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
+	s.Db.View(func(tx *bolt.Tx) error {
+		tx.Bucket([]byte(s.bucketName)).ForEach(func(k, v []byte) error {
+			key, value := make([]byte, len(k)), make([]byte, len(v))
+			copy(key, k)
+			copy(value, v)
+			s.contents.Store(string(key), value)
+			atomic.AddInt32(&s.count, 1)
+			return nil
+		})
 
-	s.Keys = s.Keys[0:0:cap(s.Keys)]
-	for k := range result {
-		s.Keys = append(s.Keys, k)
-	}
+		return nil
+	})
 
-	seelog.Debug(s.Keys)
+	// seelog.Debugf("content:%v,count:%d", s.contents, s.count)
 }
 
 // Get one random record.
 func (s *BoltDbStorage) GetRandomOne() []byte {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-
-	if len(s.Keys) == 0 {
+	if s.count == 0 {
 		return nil
 	}
 
-	key := s.Keys[rand.New(rand.NewSource(time.Now().Unix())).Intn(len(s.Keys))]
+	var randomKey string
+	var defaultKey string
+	index := rand.New(rand.NewSource(time.Now().Unix())).Intn(int(atomic.LoadInt32(&s.count)))
 
-	return s.Get(key)
+	s.contents.Range(func(key, value interface{}) bool {
+		// Set a default key to avoid that other goroutine is deleting content at the same time.
+		if defaultKey == "" {
+			defaultKey, _ = key.(string)
+		}
+
+		if index == 0 {
+			randomKey, _ = key.(string)
+			return false
+		}
+
+		index--
+		return true
+	})
+
+	if randomKey == "" {
+		randomKey = defaultKey
+	}
+
+	return s.Get(randomKey)
 }
