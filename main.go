@@ -31,9 +31,9 @@ func main() {
 	go server.NewServer(database)
 
 	// Verify storage every 5min.
-	syncTicker := time.NewTicker(time.Minute * 5)
+	verifyTicker := time.NewTicker(time.Minute * 5)
 	go func() {
-		for _ = range syncTicker.C {
+		for _ = range verifyTicker.C {
 			verifier.VerifyAndDelete(database)
 			seelog.Debug("verify database.")
 		}
