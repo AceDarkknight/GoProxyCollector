@@ -9,3 +9,7 @@ type Storage interface {
 	Close()
 	GetRandomOne() []byte
 }
+
+func NewStorage() (Storage, error) {
+	return NewBoltDbStorage("proxy.db", "IpList")
+}

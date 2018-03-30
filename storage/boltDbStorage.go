@@ -47,12 +47,14 @@ func NewBoltDbStorage(fileName string, bucketName string) (*BoltDbStorage, error
 		return nil, err
 	}
 
-	storage := BoltDbStorage{
+	storage := &BoltDbStorage{
 		Db:         db,
 		bucketName: bucketName,
 	}
 
-	return &storage, nil
+	// Sync data from database to memory.
+	storage.sync()
+	return storage, nil
 }
 
 // Exist will check the given key is existed in DB or not.
@@ -138,8 +140,8 @@ func (s *BoltDbStorage) Close() {
 	s.Db.Close()
 }
 
-// SyncKeys will sync the DB's key to memory.
-func (s *BoltDbStorage) Sync() {
+// Sync will sync the DB's data to memory.
+func (s *BoltDbStorage) sync() {
 	s.Db.View(func(tx *bolt.Tx) error {
 		tx.Bucket([]byte(s.bucketName)).ForEach(func(k, v []byte) error {
 			key, value := make([]byte, len(k)), make([]byte, len(v))

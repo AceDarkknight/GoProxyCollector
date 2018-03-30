@@ -201,10 +201,3 @@ func TestBoltDbStorage_DeleteParallel(t *testing.T) {
 
 	deleteBucket()
 }
-
-func TestNewBoltDbStorage(t *testing.T) {
-	a := 0.2
-	b := 80
-
-	s := a * float64(b)
-}

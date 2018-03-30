@@ -18,21 +18,19 @@ func main() {
 	defer seelog.Flush()
 
 	// Load database.
-	database, err := storage.NewBoltDbStorage("proxy.db", "IpList")
+	database, err := storage.NewStorage()
+	defer database.Close()
 	if err != nil {
 		seelog.Critical(err)
 		panic(err)
 	}
 
-	// Sync data.
-	database.Sync()
 	seelog.Infof("database initialize finish.")
-	defer database.Close()
 
 	// Start server
 	go server.NewServer(database)
 
-	// Sync DB every 5min.
+	// Verify storage every 5min.
 	syncTicker := time.NewTicker(time.Minute * 5)
 	go func() {
 		for _ = range syncTicker.C {
