@@ -20,14 +20,14 @@ func VerifyAndDelete(storage storage.Storage) {
 	var wg sync.WaitGroup
 
 	items := storage.GetAll()
-	for ip, value := range items {
+	for _, value := range items {
 		wg.Add(1)
 
 		go func(v []byte) {
 			var r result.Result
 			json.Unmarshal(v, &r)
-			if !util.VerifyProxyIp(ip, r.Port) {
-				storage.Delete(ip)
+			if !util.VerifyProxyIp(r.Ip, r.Port) {
+				storage.Delete(r.Ip)
 			}
 
 			defer wg.Done()
