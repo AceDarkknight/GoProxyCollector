@@ -76,6 +76,10 @@ func (c *RegexCollector) Collect(ch chan<- *result.Result) []error {
 	defer close(ch)
 
 	response, bodyString, errs := gorequest.New().Get(c.currentUrl).Set("User-Agent", util.RandomUA()).End()
+	if response.Body != nil {
+		defer response.Body.Close()
+	}
+
 	if len(errs) > 0 {
 		seelog.Errorf("%+v", errs)
 		return errs

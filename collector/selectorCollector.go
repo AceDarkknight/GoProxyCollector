@@ -91,6 +91,10 @@ func (c *SelectorCollector) Collect(ch chan<- *result.Result) []error {
 	defer close(ch)
 
 	response, _, errs := gorequest.New().Get(c.currentUrl).Set("User-Agent", util.RandomUA()).End()
+	if response.Body != nil {
+		defer response.Body.Close()
+	}
+
 	if len(errs) > 0 {
 		seelog.Errorf("%+v", errs)
 		return errs
@@ -101,8 +105,6 @@ func (c *SelectorCollector) Collect(ch chan<- *result.Result) []error {
 		seelog.Error(errorMessage)
 		return []error{errors.New(errorMessage)}
 	}
-
-	defer response.Body.Close()
 
 	// If the charset of website isn't utf-8, need to decode first.
 	var decoder mahonia.Decoder
